@@ -1,0 +1,10 @@
+numpy==1.18.5
+scipy==1.4.1
+pandas==1.1.0
+librosa==0.8.1
+matplotlib==3.4.2
+seaborn==0.10.1
+scikit-learn==0.24.1
+tensorflow==2.3.0
+tensorflow-probability==0.11.0
+tensorflow_datasets==4.1.0
