@@ -1,8 +1,8 @@
 import numpy as np
-from scipy.io import wavfile
+import librosa
 from os import listdir
 
-def load_wavs(fpath):
+def load_wavs(fpath, sample_rate=44100):
     """Loads .wav files from a specified filepath.
 
     The specified filepath should contain only .wav files.
@@ -18,7 +18,8 @@ def load_wavs(fpath):
     file_names = listdir(fpath)
     for file_name in file_names:
         try:
-            wav_dict[file_name] = wavfile.read(fpath + '/' + file_name)
+            wav_dict[file_name] = librosa.load(fpath + '/' + file_name,
+                                               sr=sample_rate)
         except:
             print(f"Exception occured for {fpath + '/' + file_name}")
     return wav_dict
@@ -36,8 +37,8 @@ def check_compatible(wav_dict):
     rates = []
     wav_sizes = []
     for file_name in wav_dict.keys():
-        rates.append(wav_dict[file_name][0])
-        wav_sizes.append(len(wav_dict[file_name][1]))
+        rates.append(wav_dict[file_name][1])
+        wav_sizes.append(len(wav_dict[file_name][0]))
     unique_rates = np.unique(rates)
     unique_sizes = np.unique(wav_sizes)
     if len(unique_rates) == 1 and len(unique_sizes) == 1:
@@ -67,20 +68,20 @@ def tabulate_wavs(wav_dict, lab_pos, fold_pos):
     """
     # Extract number of samples per .wav adn total number of .wavs
     wav_dict_vals = list(wav_dict.values())
-    wav_len = len(wav_dict_vals[0][1])
+    wav_len = len(wav_dict_vals[0][0])
     num_wav = len(wav_dict_vals)
 
     # Initialise arrays to store quantities of interest
-    wavs = np.zeros((num_wav, wav_len), dtype=np.int16)
-    wavs_labs = np.zeros((num_wav, 1), dtype=np.int16)
-    wavs_folds = np.zeros((num_wav, 1), dtype=np.int16)
+    wavs = np.zeros((num_wav, wav_len), dtype=np.float32)
+    wavs_labs = np.zeros((num_wav, 1), dtype=np.int8)
+    wavs_folds = np.zeros((num_wav, 1), dtype=np.int8)
     wavs_fname = []
 
     # Populate arrays of interest
     file_names = wav_dict.keys()
     for i, file_name in enumerate(file_names):
         # Extract .wav samples
-        wavs[i] = wav_dict[file_name][1]
+        wavs[i] = wav_dict[file_name][0]
 
         # Remove .wav part and then split by '-'
         file_name_trunc = file_name.split('.')[0]
@@ -150,9 +151,13 @@ if __name__ == '__main__':
     esc_wav_processor('Data/ESC-50-master/audio',
                       'Data/esc50_tabulated',
                       3, 0)
+
+    """
     # Process UrbanSound8K
     for i in range(1, 11):
         us8k_wav_processor('Data/UrbanSound8k/audio',
                            'Data/us8k_tabulated',
                            1, i)
+    """
+
 
