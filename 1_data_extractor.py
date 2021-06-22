@@ -53,18 +53,18 @@ def check_compatible(wav_dict):
         return False
 
 def tabulate_wavs(wav_dict, lab_pos, fold_pos):
-    """Tabulates a dictionary of .wavs and extracts labels, fold and filename
+    """Tabulates a dictionary of .wavs and extracts labels, fold and filename.
 
     Args:
         wav_dict (dict): Dictionary of .wav files with keys specified by
             filenames and values of the form (sample_rate, samples).
         lab_pos (int): Position of label in filename (indexing starts at zero).
-        fold_pos (int):Position of fold in filename (indexing starts at zero).
+        fold_pos (int): Position of fold in filename (indexing starts at zero).
 
     Returns:
         4-tuple containing an array of the  tabulated waves, an array of the
             associated labels, an array of the associated folds and an
-             array of the assoicated filenames
+             array of the assoicated filenames.
     """
     # Extract number of samples per .wav adn total number of .wavs
     wav_dict_vals = list(wav_dict.values())
@@ -95,13 +95,13 @@ def tabulate_wavs(wav_dict, lab_pos, fold_pos):
     return wavs, wavs_labs, wavs_folds, np.array(wavs_fname, dtype=str)
 
 def folds_to_csv(folder_path, wavs, wavs_labs, wavs_folds, wavs_fname):
-    """Writes tabulated .wavs samples and labels to .csv
+    """Writes tabulated .wavs samples and labels to .csv.
 
     Args:
-        folder_path (str): Folder for data to be written to
-        wavs (array): Array of .wav samples
-        wavs_labs (array): Array of labels
-        wavs_folds (array): Array of fold memberships
+        folder_path (str): Folder for data to be written to.
+        wavs (array): Array of .wav samples.
+        wavs_labs (array): Array of labels.
+        wavs_folds (array): Array of fold memberships.
 
     """
     folds = np.unique(wavs_folds)
@@ -116,6 +116,15 @@ def folds_to_csv(folder_path, wavs, wavs_labs, wavs_folds, wavs_fname):
 
 
 def esc_wav_processor(input_fpath, output_fpath, lab_pos, fold_pos):
+    """ Chains the previous functions to form a pre-processor.
+
+    Args:
+        input_fpath (str): Filepath containg the .wav files.
+        output_fpath (str): Filepath for the matrix of waveforms the .wav files.
+        lab_pos (int): Position of label in filename (indexing starts at zero).
+        fold_pos (int): Position of fold in filename (indexing starts at zero).
+
+    """
     # Import .wav files as dictionary
     wav_dict = load_wavs(input_fpath)
 
@@ -131,33 +140,10 @@ def esc_wav_processor(input_fpath, output_fpath, lab_pos, fold_pos):
     # Write tabulated .wavs to seperate csv files for each fold
     folds_to_csv(output_fpath, wavs, wavs_labs, wavs_folds, wavs_fname)
 
-def us8k_wav_processor(input_fpath, output_fpath, lab_pos, fold):
-    # Import .wav files as dictionary
-    wav_dict = load_wavs(input_fpath + f'/fold{fold}')
-
-    # Check dictionary of .wavs can be tabulated:
-    if not check_compatible(wav_dict):
-        raise Exception(".wav files have an incompatible number of samples or "
-                        "sample rate, thus they cannot be tabulated.")
-
-    # Store the audio files in a tabular data structure:
-    wavs, wavs_labs, _ = tabulate_wavs(wav_dict, lab_pos, lab_pos)
-
-    # Write tabulated .wavs to seperate csv files for each fold
-    folds_to_csv(output_fpath, wavs, wavs_labs, np.repeat(fold, len(wavs)))
-
 if __name__ == '__main__':
     # Process ESC50
     esc_wav_processor('Data/ESC-50-master/audio',
                       'Data/esc50_tabulated',
                       3, 0)
-
-    """
-    # Process UrbanSound8K
-    for i in range(1, 11):
-        us8k_wav_processor('Data/UrbanSound8k/audio',
-                           'Data/us8k_tabulated',
-                           1, i)
-    """
 
 
