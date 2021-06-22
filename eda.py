@@ -146,7 +146,7 @@ def plot_spectrograms(x, y, label_dict, ncols=5, sample_rate=44100,
     fig.supylabel("Frequency (Hz)")
     for i in range(ncols):
         for j in range(nrows):
-            f, t, Sxx = signal.spectrogram(x[i * nrows + j], 44100)
+            f, t, Sxx = signal.spectrogram(x[i * nrows + j], sample_rate)
             axes[j, i].pcolormesh(t, f, Sxx,
                                   shading='gouraud',
                                   norm=LogNorm(clip=True))
@@ -154,20 +154,65 @@ def plot_spectrograms(x, y, label_dict, ncols=5, sample_rate=44100,
                                  replace("_", " ").title())
     return fig
 
+def plot_mel_spectrograms(x, y, label_dict, ncols=5, sample_rate=44100,
+                   figsize=(12, 18)):
+    """Plots a grid of the supplied waveforms' spectrograms.
 
+    Args:
+        x (numpy.ndarray): A matrix of wave samples, columns containg samples and
+            rows represnting different waveforms.
+        y (numpy.ndarray): A vector of labels associated with the waveforms.
+        label_dict (dict): A dictionary of readable label names.
+        ncols (int): Number of columns in the plot grid.
+        sample_rate (float): Number of samples per unit time.
+        figsize (tuple): 2-tuple of figure dimensions (Width, Height).
 
-esc50_meta = pd.read_csv('Data/ESC-50-master/meta/esc50.csv')
-x = np.load('Data/esc50_tabulated/X_1.npy')
-y = np.load('Data/esc50_tabulated/y_1.npy')
+    Returns:
+        matplotlib.figure.Figure: Grid of spectrogram plots.
+    """
+    nrows = -(-x.shape[0]//ncols) # -(-x//y) will perform ceilling division
 
-label_dict = extract_readable_labs(esc50_meta, 'target', 'category')
-first_occ = first_occurance(y)
-x_first_occ = x[first_occ[1]]
-y_first_occ = y[first_occ[1]]
-plot_waveforms(x_first_occ, y_first_occ, label_dict).\
-    savefig('Figures/waveforms.PNG')
-plot_ffts(x_first_occ, y_first_occ, label_dict).\
-    savefig('Figures/waveforms_ffts.PNG')
-plot_spectrograms(x_first_occ, y_first_occ, label_dict).\
-    savefig('Figures/waveforms_spectrograms.PNG')
+    fig, axes = plt.subplots(nrows=nrows, ncols=ncols,
+                             sharex=True, sharey=True,
+                             figsize=figsize)
+    fig.tight_layout(pad=5, w_pad=0.1, h_pad=1.5)
+    fig.supxlabel("Time (s)", fontsize=20)
+    fig.supylabel("Frequency (Hz)", fontsize=20)
+    for i in range(ncols):
+        for j in range(nrows):
+            S = librosa.feature.melspectrogram(y=x[i * nrows + j].astype(float),
+                                               sr=sample_rate, n_mels=128)
+            S_dB = librosa.power_to_db(S, ref=np.max)
+            img = librosa.display.specshow(S_dB, x_axis='s', y_axis='mel',
+                                     sr=sample_rate, ax=axes[j, i])
+            axes[j, i].locator_params(axis='x', nbins=4)
+            axes[j, i].set_xlabel("")
+            axes[j, i].set_ylabel("")
+            axes[j, i].set_title(label_dict[y[i * nrows + j, 0]].
+                                 replace("_", " ").title(),
+                                 fontsize=17)
+    fig.colorbar(img, ax=axes, format="%+2.f dB", aspect=50, fraction=0.04)
+    return fig
+
+if __name__ == '__main__':
+    # Load  in relevant data.
+    esc50_meta = pd.read_csv('Data/ESC-50-master/meta/esc50.csv')
+    x = np.load('Data/esc50_tabulated/X_1.npy')
+    y = np.load('Data/esc50_tabulated/y_1.npy')
+
+    # Extract readable labels and first occurrences of each label.
+    label_dict = extract_readable_labs(esc50_meta, 'target', 'category')
+    first_occ = first_occurance(y)
+    x_first_occ = x[first_occ[1]]
+    y_first_occ = y[first_occ[1]]
+
+    # Make Plots
+    plot_waveforms(x_first_occ, y_first_occ, label_dict).\
+        savefig('Figures/waveforms.PNG')
+    plot_ffts(x_first_occ, y_first_occ, label_dict).\
+        savefig('Figures/waveforms_ffts.PNG')
+    plot_spectrograms(x_first_occ, y_first_occ, label_dict).\
+        savefig('Figures/waveforms_spectrograms.PNG')
+    plot_mel_spectrograms(x_first_occ, y_first_occ, label_dict).\
+        savefig('Figures/waveforms_mel_spectrograms.PNG')
 
