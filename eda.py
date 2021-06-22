@@ -156,7 +156,7 @@ def plot_spectrograms(x, y, label_dict, ncols=5, sample_rate=44100,
 
 def plot_mel_spectrograms(x, y, label_dict, ncols=5, sample_rate=44100,
                    figsize=(12, 18)):
-    """Plots a grid of the supplied waveforms' spectrograms.
+    """Plots a grid of the supplied waveforms' mel-spectrograms.
 
     Args:
         x (numpy.ndarray): A matrix of wave samples, columns containg samples and
@@ -168,7 +168,7 @@ def plot_mel_spectrograms(x, y, label_dict, ncols=5, sample_rate=44100,
         figsize (tuple): 2-tuple of figure dimensions (Width, Height).
 
     Returns:
-        matplotlib.figure.Figure: Grid of spectrogram plots.
+        matplotlib.figure.Figure: Grid of mel-spectrogram plots.
     """
     nrows = -(-x.shape[0]//ncols) # -(-x//y) will perform ceilling division
 
