@@ -1,5 +1,4 @@
 import numpy as np
-import scipy as sp
 import librosa
 import librosa.display
 from scipy import signal
@@ -60,12 +59,13 @@ def plot_waveforms(x, y, label_dict, ncols=5, sample_rate=44100,
 
     fig, axes = plt.subplots(nrows=nrows, ncols=ncols,
                              sharex=True, sharey=True,
-                             figsize=figsize)
+                             figsize=figsize, squeeze=False)
     fig.tight_layout(pad=5, w_pad=0.1, h_pad=1.5)
     fig.supxlabel("Time (s)")
-    fig.supylabel("LPCM-16 Value")
     for i in range(ncols):
         for j in range(nrows):
+            if i * nrows + j >= x.shape[0]:
+                break
             axes[j, i].plot(timestamps, x[i * nrows + j], alpha=0.5)
             axes[j, i].set_title(label_dict[y[i * nrows + j, 0]].
                                  replace("_", " ").title())
@@ -174,7 +174,7 @@ def plot_mel_spectrograms(x, y, label_dict, ncols=5, sample_rate=44100,
 
     fig, axes = plt.subplots(nrows=nrows, ncols=ncols,
                              sharex=True, sharey=True,
-                             figsize=figsize)
+                             figsize=figsize, squeeze=False)
     fig.tight_layout(pad=5, w_pad=0.1, h_pad=1.5)
     fig.supxlabel("Time (s)", fontsize=20)
     fig.supylabel("Frequency (Hz)", fontsize=20)
@@ -193,6 +193,28 @@ def plot_mel_spectrograms(x, y, label_dict, ncols=5, sample_rate=44100,
                                  fontsize=17)
     fig.colorbar(img, ax=axes, format="%+2.f dB", aspect=50, fraction=0.04)
     return fig
+
+def plot_hpss(x, sample_rate=44100, figsize=(12, 4)):
+    """ Plots mel-spectrograms of HPSS decomposition
+
+    Args:
+        x (numpy.ndarray): Waveform samples
+
+    Returns:
+        matplotlib.figure.Figure: HPSS components' mel-spectrogram plots.
+
+    """
+    # Perform HPSS to extract raw, harmonic and precussive components
+    r = x
+    h, p = librosa.effects.hpss(x)
+
+    # wrapper to reuse mel_spectrogram code
+    waveforms = np.stack([r, h, p])
+    y = np.array([[0], [1], [2]])
+    label_dict = {0:'Raw', 1:'Harmonic', 2:'percussive'}
+    return plot_mel_spectrograms(waveforms, y, label_dict, ncols=3,
+                          sample_rate=sample_rate, figsize=figsize)
+
 
 if __name__ == '__main__':
     # Load  in relevant data.
@@ -215,4 +237,5 @@ if __name__ == '__main__':
         savefig('Figures/waveforms_spectrograms.PNG')
     plot_mel_spectrograms(x_first_occ, y_first_occ, label_dict).\
         savefig('Figures/waveforms_mel_spectrograms.PNG')
-
+    plot_hpss(x_first_occ[35]).\
+        savefig('Figures/hpss.PNG')
