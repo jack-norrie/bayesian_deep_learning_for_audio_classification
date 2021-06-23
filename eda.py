@@ -155,7 +155,7 @@ def plot_spectrograms(x, y, label_dict, ncols=5, sample_rate=44100,
     return fig
 
 def plot_mel_spectrograms(x, y, label_dict, ncols=5, sample_rate=44100,
-                   figsize=(12, 18)):
+                   figsize=(12, 18), frac=0.04, aspect=50):
     """Plots a grid of the supplied waveforms' mel-spectrograms.
 
     Args:
@@ -191,10 +191,11 @@ def plot_mel_spectrograms(x, y, label_dict, ncols=5, sample_rate=44100,
             axes[j, i].set_title(label_dict[y[i * nrows + j, 0]].
                                  replace("_", " ").title(),
                                  fontsize=17)
-    fig.colorbar(img, ax=axes, format="%+2.f dB", aspect=50, fraction=0.04)
+    fig.colorbar(img, ax=axes, format="%+2.f dB",
+                 aspect=aspect, fraction=frac)
     return fig
 
-def plot_hpss(x, sample_rate=44100, figsize=(12, 4)):
+def plot_hpss(x, sample_rate=44100, figsize=(12, 4), frac=0.15, aspect=20):
     """ Plots mel-spectrograms of HPSS decomposition
 
     Args:
@@ -213,7 +214,9 @@ def plot_hpss(x, sample_rate=44100, figsize=(12, 4)):
     y = np.array([[0], [1], [2]])
     label_dict = {0:'Raw', 1:'Harmonic', 2:'percussive'}
     return plot_mel_spectrograms(waveforms, y, label_dict, ncols=3,
-                          sample_rate=sample_rate, figsize=figsize)
+                                 sample_rate=sample_rate,
+                                 figsize=figsize,
+                                 frac=frac, aspect=aspect)
 
 
 if __name__ == '__main__':
