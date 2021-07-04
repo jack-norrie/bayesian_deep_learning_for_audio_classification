@@ -3,6 +3,8 @@ import librosa
 import librosa.display
 from scipy import signal
 import pandas as pd
+import matplotlib as mpl
+from cycler import cycler
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 plt.style.use('ggplot')
@@ -243,8 +245,6 @@ if __name__ == '__main__':
     plot_hpss(x_first_occ[35]).\
         savefig('Figures/hpss.PNG')
     plt.style.use('default')
-    import matplotlib as mpl
-    from cycler import cycler
     mpl.rcParams['axes.prop_cycle'] = cycler('color', [ '#9467bd', '#1f77b4',
                                                        '#2ca02c', '#d62728',
                                                         '#8c564b', '#ff7f0e',
