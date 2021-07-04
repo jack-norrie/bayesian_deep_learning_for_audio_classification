@@ -242,3 +242,22 @@ if __name__ == '__main__':
         savefig('Figures/waveforms_mel_spectrograms.PNG')
     plot_hpss(x_first_occ[35]).\
         savefig('Figures/hpss.PNG')
+    plt.style.use('default')
+    import matplotlib as mpl
+    from cycler import cycler
+    mpl.rcParams['axes.prop_cycle'] = cycler('color', [ '#9467bd', '#1f77b4',
+                                                       '#2ca02c', '#d62728',
+                                                        '#8c564b', '#ff7f0e',
+                                                       '#e377c2', '#7f7f7f',
+                                                       '#bcbd22', '#17becf'])
+    plot_waveforms(np.array([x_first_occ[20]]),
+                   y_first_occ[20][..., np.newaxis],
+                   label_dict,
+                   ncols=1,
+                   figsize=(10, 4.25)).\
+        savefig('Figures/single_waveform.PNG')
+
+
+
+
+
