@@ -39,7 +39,7 @@ def _int64_feature(value):
     return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
 def serialize_array(array):
-    array = tf.io.serialize_tensor(array)
+    array = tf.io.serialize_tensor(tf.cast(array, tf.float32))
     return array
 
 def parse_single_image(image, label):
@@ -48,7 +48,7 @@ def parse_single_image(image, label):
         'height': _int64_feature(image.shape[0]),
         'width': _int64_feature(image.shape[1]),
         'depth': _int64_feature(image.shape[2]),
-        'raw_image': _bytes_feature(serialize_array(image)),
+        'image': _bytes_feature(serialize_array(image)),
         'label': _int64_feature(label)
     }
     # create an Example, wrapping the single features
