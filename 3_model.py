@@ -86,11 +86,10 @@ def evaluate_model(model, data):
         output.write(str(results))
 
 
-
 if __name__ == '__main__':
     data_train = get_dataset([f'Data/esc50_multi_tfr/fold_{i}.tfrecords'
                               for i in [1, 2, 3, 4]])
     data_test = get_dataset('Data/esc50_multi_tfr/fold_5.tfrecords')
     model = gen_model()
-    model = train_model(model, data_train.take(1), epochs=1)
+    model = train_model(model, data_train, epochs=10)
     evaluate_model(model, data_test)
