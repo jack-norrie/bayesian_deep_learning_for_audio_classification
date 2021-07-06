@@ -91,5 +91,5 @@ if __name__ == '__main__':
                               for i in [1, 2, 3, 4]])
     data_test = get_dataset('Data/esc50_multi_tfr/fold_5.tfrecords')
     model = gen_model()
-    model = train_model(model, data_train, epochs=10)
+    train_model(model, data_train, epochs=5)
     evaluate_model(model, data_test)
