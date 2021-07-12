@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Input, Dense
+from tensorflow.keras.layers import Input, Dense, Dropout
 from tensorflow.keras.models import Sequential
 from tensorflow.keras import regularizers
 from tensorflow.keras.optimizers import Adam
@@ -66,6 +66,7 @@ def gen_efn_model(input_shape=(128, 431, 3), output_shape=50):
     # Define model components
     input = Input(shape=input_shape, dtype='float32', name='input')
     base_efn = efn.EfficientNetB4(include_top=False, pooling='avg')
+    dropout = Dropout(0.5)
     output = Dense(output_shape, activation='softmax',
                    kernel_regularizer=regularizers.l2(1e-4))
 
@@ -76,6 +77,7 @@ def gen_efn_model(input_shape=(128, 431, 3), output_shape=50):
     model = Sequential([
         input,
         base_efn,
+        dropout,
         output
     ])
     model.summary()
