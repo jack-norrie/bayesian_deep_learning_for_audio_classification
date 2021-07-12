@@ -83,11 +83,13 @@ def gen_efn_model(input_shape=(128, 431, 3), output_shape=50):
 def gen_bnn_model(input_shape=(128, 431, 3), output_shape=50):
     input = Input(shape=input_shape, dtype='float32', name='input')
 
-def train_model(model, data, epochs=100):
+def train_model(model, data, validation_data=None, epochs=100):
     model.compile(Adam(lr=1e-4),
                   loss='sparse_categorical_crossentropy',
                   metrics=['sparse_categorical_accuracy'])
-    model.fit(data, epochs=epochs)
+    model.fit(data,
+              validation_data,
+              epochs=epochs)
 
 def evaluate_model(model, data):
     results = model.evaluate(data)
@@ -97,8 +99,9 @@ def evaluate_model(model, data):
 
 if __name__ == '__main__':
     data_train = get_dataset([f'Data/esc50_multi_tfr/fold_{i}.tfrecords'
-                              for i in [1, 2, 3, 4]])
+                              for i in [1, 2, 3]])
+    data_val = get_dataset('Data/esc50_multi_tfr/fold_4.tfrecords')
     data_test = get_dataset('Data/esc50_multi_tfr/fold_5.tfrecords')
     model = gen_efn_model()
-    train_model(model, data_train, epochs=10)
+    train_model(model, data_train, data_val, epochs=10)
     evaluate_model(model, data_test)
