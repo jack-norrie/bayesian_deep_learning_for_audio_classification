@@ -88,7 +88,7 @@ def train_model(model, data, validation_data=None, epochs=100):
                   loss='sparse_categorical_crossentropy',
                   metrics=['sparse_categorical_accuracy'])
     model.fit(data,
-              validation_data,
+              validation_data=validation_data,
               epochs=epochs)
 
 def evaluate_model(model, data):
@@ -103,5 +103,5 @@ if __name__ == '__main__':
     data_val = get_dataset('Data/esc50_multi_tfr/fold_4.tfrecords')
     data_test = get_dataset('Data/esc50_multi_tfr/fold_5.tfrecords')
     model = gen_efn_model()
-    train_model(model, data_train, data_val, epochs=10)
+    train_model(model, data_train, data_val, epochs=25)
     evaluate_model(model, data_test)
