@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Input, Dense
-from tensorflow.keras.models import Model, Sequential
+from tensorflow.keras.models import Sequential
+from tensorflow.keras import regularizers
 from tensorflow.keras.optimizers import Adam
 from functools import partial
 efn = tf.keras.applications.efficientnet
@@ -65,7 +66,8 @@ def gen_efn_model(input_shape=(128, 431, 3), output_shape=50):
     # Define model components
     input = Input(shape=input_shape, dtype='float32', name='input')
     base_efn = efn.EfficientNetB4(include_top=False, pooling='avg')
-    output = Dense(output_shape, activation='softmax')
+    output = Dense(output_shape, activation='softmax',
+                   kernel_regularizer=regularizers.l2(1e-4))
 
     # Freeze EfficentNet weights
     base_efn.trainable = False
@@ -103,5 +105,5 @@ if __name__ == '__main__':
     data_val = get_dataset('Data/esc50_multi_tfr/fold_4.tfrecords')
     data_test = get_dataset('Data/esc50_multi_tfr/fold_5.tfrecords')
     model = gen_efn_model()
-    train_model(model, data_train, data_val, epochs=25)
+    train_model(model, data_train, data_val, epochs=100)
     evaluate_model(model, data_test)
