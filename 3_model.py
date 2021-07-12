@@ -49,7 +49,7 @@ def get_dataset(filenames):
     dataset = load_dataset(filenames)
     dataset = dataset.shuffle(2048)
     dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-    dataset = dataset.batch(64)
+    dataset = dataset.batch(16)
     return dataset
 
 def gen_efn_model(input_shape=(128, 431, 3), output_shape=50):
