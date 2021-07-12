@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Input, Dense
-from tensorflow.keras.models import Model
+from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.optimizers import Adam
 from functools import partial
 efn = tf.keras.applications.efficientnet
@@ -52,7 +52,7 @@ def get_dataset(filenames):
     dataset = dataset.batch(64)
     return dataset
 
-def gen_model(input_shape=(128, 431, 3), output_shape=50):
+def gen_efn_model(input_shape=(128, 431, 3), output_shape=50):
     """ Builds an neural network for environmental sound classification
 
     Args:
@@ -62,17 +62,26 @@ def gen_model(input_shape=(128, 431, 3), output_shape=50):
     Returns:
         keras model
     """
-    # Use functional API to define model
+    # Define model components
     input = Input(shape=input_shape, dtype='float32', name='input')
-    base_efn = efn.EfficientNetB4(include_top=False,
-                                  pooling='avg')(input)
-    output = Dense(output_shape, activation='softmax')(base_efn)
+    base_efn = efn.EfficientNetB4(include_top=False, pooling='avg')
+    output = Dense(output_shape, activation='softmax')
+
+    # Freeze EfficentNet weights
+    base_efn.trainable = False
 
     # Build model and print summary
-    model = Model(inputs=input, outputs=output)
+    model = Sequential([
+        input,
+        base_efn,
+        output
+    ])
     model.summary()
 
     return model
+
+def gen_bnn_model(input_shape=(128, 431, 3), output_shape=50):
+    input = Input(shape=input_shape, dtype='float32', name='input')
 
 def train_model(model, data, epochs=100):
     model.compile(Adam(lr=1e-4),
@@ -90,6 +99,6 @@ if __name__ == '__main__':
     data_train = get_dataset([f'Data/esc50_multi_tfr/fold_{i}.tfrecords'
                               for i in [1, 2, 3, 4]])
     data_test = get_dataset('Data/esc50_multi_tfr/fold_5.tfrecords')
-    model = gen_model()
-    train_model(model, data_train, epochs=5)
+    model = gen_efn_model()
+    train_model(model, data_train, epochs=10)
     evaluate_model(model, data_test)
