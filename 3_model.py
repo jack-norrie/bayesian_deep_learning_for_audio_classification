@@ -184,7 +184,7 @@ def gen_simple_cnn(input_shape=(128, 431, 3), output_shape=50,
 
 def gen_simple_bnn(prior=prior, posterior=posterior,
                   batch_size=16, input_shape=(128, 431, 3), output_shape=50,
-                  loss=nll, optimizer=Adam(1e-2), metrics=['accuracy']):
+                  loss=nll, optimizer=RMSprop(), metrics=['accuracy']):
     model = Sequential([
         Input(shape=input_shape, dtype='float32', name='input'),
         tfpl.Convolution2DReparameterization(8, (9, 9), (3, 5),
