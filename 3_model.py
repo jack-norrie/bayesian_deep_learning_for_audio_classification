@@ -160,6 +160,41 @@ def gen_bnn_model(prior=prior, posterior=posterior,
 
     return model
 
+def gen_simple_bnn(prior=prior, posterior=posterior,
+                  batch_size=16, input_shape=(128, 431, 3), output_shape=50,
+                  loss=nll, optimizer=Adam(1e-2), metrics=['accuracy']):
+    model = Sequential([
+        Input(shape=input_shape, dtype='float32', name='input'),
+        tfpl.Convolution2DReparameterization(8, (9, 9), (3, 5),
+                                             activation='relu',
+                                             bias_prior_fn=tfp.layers.default_multivariate_normal_fn,
+                                             bias_posterior_fn=tfpl.util.default_mean_field_normal_fn()),
+        MaxPool2D(),
+        tfpl.Convolution2DReparameterization(16, (5, 5), (2, 3),
+                                             activation='relu',
+                                             bias_prior_fn=tfp.layers.default_multivariate_normal_fn,
+                                             bias_posterior_fn=tfpl.util.default_mean_field_normal_fn()),
+        MaxPool2D(),
+        Flatten(),
+        tfpl.DenseVariational(
+            tfpl.OneHotCategorical.params_size(output_shape),
+            make_posterior_fn=posterior,
+            make_prior_fn=prior,
+            kl_weight=1/batch_size,
+            kl_use_exact=False
+        ),
+        tfpl.OneHotCategorical(output_shape,
+                               convert_to_tensor_fn=tfd.Distribution.mode)
+    ])
+
+    model.summary()
+
+    model.compile(optimizer=optimizer,
+                  loss=loss,
+                  metrics=metrics)
+
+    return model
+
 def train_model(model, data, validation_data=None, epochs=100):
     model.fit(data,
               validation_data=validation_data,
@@ -176,6 +211,6 @@ if __name__ == '__main__':
                               for i in [1, 2, 3]])
     data_val = get_dataset('Data/esc50_multi_tfr/fold_4.tfrecords')
     data_test = get_dataset('Data/esc50_multi_tfr/fold_5.tfrecords')
-    model = gen_bnn_model()
+    model = gen_simple_bnn()
     train_model(model, data_train, data_val, epochs=100)
     evaluate_model(model, data_test)
