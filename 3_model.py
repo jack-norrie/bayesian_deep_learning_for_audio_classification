@@ -143,7 +143,7 @@ def gen_bnn_model(prior=prior, posterior=posterior,
         Flatten(),
         Dropout(0.2),
         tfpl.DenseVariational(
-            tfpl.OneHotCategorical.params_size(10),
+            tfpl.OneHotCategorical.params_size(output_shape),
             make_posterior_fn=posterior,
             make_prior_fn=prior,
             kl_weight=1/batch_size,
