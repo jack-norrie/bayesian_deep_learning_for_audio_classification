@@ -114,7 +114,7 @@ def gen_bnn_model(input_shape=(128, 431, 3), output_shape=50):
     return model
 
 def train_model(model, data, validation_data=None, epochs=100):
-    model.compile(Adam(lr=1e-4),
+    model.compile(Adam(lr=1e-2),
                   loss='sparse_categorical_crossentropy',
                   metrics=['sparse_categorical_accuracy'])
     model.fit(data,
