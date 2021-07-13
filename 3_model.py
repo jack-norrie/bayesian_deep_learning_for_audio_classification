@@ -233,7 +233,7 @@ if __name__ == '__main__':
                               for i in [1, 2, 3]])
     data_val = get_dataset('Data/esc50_multi_tfr/fold_4.tfrecords')
     data_test = get_dataset('Data/esc50_multi_tfr/fold_5.tfrecords')
-    model = gen_simple_cnn()
+    model = gen_simple_bnn()
     train_model(model, data_train, data_val, epochs=100)
     evaluate_model(model, data_test)
 
