@@ -203,7 +203,7 @@ def gen_simple_bnn(prior=prior, posterior=posterior,
             make_prior_fn=prior,
             make_posterior_fn=posterior,
             kl_weight=1/n,
-            kl_use_exact=True
+            kl_use_exact=False
         ),
         tfpl.OneHotCategorical(output_shape,
                                convert_to_tensor_fn=tfd.Distribution.mode)
