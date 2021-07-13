@@ -114,7 +114,6 @@ def gen_bnn_model(prior=prior, posterior=posterior,
                   loss=nll, optimizer=Adam(1e-2), metrics=['accuracy']):
     model = Sequential([
         Input(shape=input_shape, dtype='float32', name='input'),
-        BatchNormalization(),
         tfpl.Convolution2DReparameterization(8, (9, 9), (3, 3),
                                              activation='relu',
                                              bias_prior_fn=tfp.layers.default_multivariate_normal_fn,
