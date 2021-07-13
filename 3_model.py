@@ -187,15 +187,9 @@ def gen_simple_bnn(prior=prior, posterior=posterior,
                   loss=nll, optimizer=RMSprop(), metrics=['accuracy']):
     model = Sequential([
         Input(shape=input_shape, dtype='float32', name='input'),
-        tfpl.Convolution2DReparameterization(8, (9, 9), (3, 5),
-                                             activation='relu',
-                                             bias_prior_fn=tfp.layers.default_multivariate_normal_fn,
-                                             bias_posterior_fn=tfpl.util.default_mean_field_normal_fn()),
+        Conv2D(8, (9, 9), (3, 5), activation='relu'),
         MaxPool2D(),
-        tfpl.Convolution2DReparameterization(16, (5, 5), (2, 3),
-                                             activation='relu',
-                                             bias_prior_fn=tfp.layers.default_multivariate_normal_fn,
-                                             bias_posterior_fn=tfpl.util.default_mean_field_normal_fn()),
+        Conv2D(16, (5, 5), (2, 3), activation='relu'),
         MaxPool2D(),
         Flatten(),
         tfpl.DenseVariational(
