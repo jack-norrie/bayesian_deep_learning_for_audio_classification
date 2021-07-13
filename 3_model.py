@@ -50,12 +50,6 @@ def load_dataset(filenames):
     # returns a dataset of (image, label)
     return dataset
 
-def len_batched_tf_data(batched_data):
-    cum_sum = 0
-    for batch in batched_data:
-        cum_sum += batch[0].shape[0]
-    print(cum_sum)
-
 def get_dataset(filenames, classes=50):
     dataset = load_dataset(filenames)
     dataset = dataset.map(lambda x, y: (x, tf.one_hot(y, classes))) #OHE
@@ -63,6 +57,12 @@ def get_dataset(filenames, classes=50):
     dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
     dataset = dataset.batch(16)
     return dataset
+
+def len_batched_tf_data(batched_data):
+    cum_sum = 0
+    for batch in batched_data:
+        cum_sum += batch[0].shape[0]
+    return cum_sum
 
 def gen_efn_model(input_shape=(128, 431, 3), output_shape=50):
     """ Builds an neural network for environmental sound classification
