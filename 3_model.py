@@ -161,7 +161,7 @@ def gen_bnn_model(prior=prior, posterior=posterior,
     return model
 
 def gen_simple_cnn(input_shape=(128, 431, 3), output_shape=50,
-                  loss=nll, optimizer=RMSprop, metrics=['accuracy']):
+                  loss=nll, optimizer=RMSprop(), metrics=['accuracy']):
     model = Sequential([
         Input(shape=input_shape, dtype='float32', name='input'),
         Conv2D(8, (9, 9), (3, 5), activation='relu'),
