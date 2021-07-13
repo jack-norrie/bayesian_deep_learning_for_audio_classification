@@ -1,8 +1,11 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Input, Dense, Dropout
+from tensorflow.keras.layers import Input, Dense, Dropout, BatchNormalization,\
+    MaxPool2D, AvgPool2D, Flatten, Permute
 from tensorflow.keras.models import Sequential
 from tensorflow.keras import regularizers
 from tensorflow.keras.optimizers import Adam
+import tensorflow_probability as tfp
+tfpl = tfp.layers
 from functools import partial
 efn = tf.keras.applications.efficientnet
 
@@ -85,7 +88,30 @@ def gen_efn_model(input_shape=(128, 431, 3), output_shape=50):
     return model
 
 def gen_bnn_model(input_shape=(128, 431, 3), output_shape=50):
-    input = Input(shape=input_shape, dtype='float32', name='input')
+    model = Sequential([
+        Input(shape=input_shape, dtype='float32', name='input'),
+        BatchNormalization(),
+        tfpl.Convolution2DReparameterization(8, (9, 9), (3, 3),
+                                             activation='relu'),
+        tfpl.Convolution2DReparameterization(16, (5, 5), (2, 2),
+                                             activation='relu'),
+        MaxPool2D(),
+        tfpl.Convolution2DReparameterization(32, (3, 3), (1, 1),
+                                             activation='relu'),
+        MaxPool2D(),
+        Permute((3, 2, 1)),
+        tfpl.Convolution2DReparameterization(8, (3, 3), (1, 1),
+                                             activation='relu'),
+        MaxPool2D(),
+        tfpl.Convolution2DReparameterization(16, (3, 3), (1, 1),
+                                             activation='relu'),
+        AvgPool2D(),
+        Flatten(),
+        Dropout(0.2),
+        tfpl.DenseReparameterization(output_shape, activation='softmax')
+    ])
+    model.summary()
+    return model
 
 def train_model(model, data, validation_data=None, epochs=100):
     model.compile(Adam(lr=1e-4),
@@ -106,6 +132,6 @@ if __name__ == '__main__':
                               for i in [1, 2, 3]])
     data_val = get_dataset('Data/esc50_multi_tfr/fold_4.tfrecords')
     data_test = get_dataset('Data/esc50_multi_tfr/fold_5.tfrecords')
-    model = gen_efn_model()
+    model = gen_bnn_model()
     train_model(model, data_train, data_val, epochs=100)
     evaluate_model(model, data_test)
