@@ -50,6 +50,12 @@ def load_dataset(filenames):
     # returns a dataset of (image, label)
     return dataset
 
+def len_batched_tf_data(batched_data):
+    cum_sum = 0
+    for batch in batched_data:
+        cum_sum += batch[0].shape[0]
+    print(cum_sum)
+
 def get_dataset(filenames, classes=50):
     dataset = load_dataset(filenames)
     dataset = dataset.map(lambda x, y: (x, tf.one_hot(y, classes))) #OHE
@@ -101,7 +107,6 @@ def prior(kernel_size, bias_size, dtype=None):
     n = kernel_size + bias_size
     return lambda t : tfd.MultivariateNormalDiag(loc=tf.zeros(n),
                                                  scale_diag=tf.ones(n))
-
 def posterior(kernel_size, bias_size, dtype=None):
     n = kernel_size + bias_size
     return Sequential([
@@ -184,7 +189,8 @@ def gen_simple_cnn(input_shape=(128, 431, 3), output_shape=50,
 
 def gen_simple_bnn(prior=prior, posterior=posterior,
                   batch_size=16, input_shape=(128, 431, 3), output_shape=50,
-                  loss=nll, optimizer=RMSprop(), metrics=['accuracy']):
+                  loss=nll, optimizer=RMSprop(), metrics=['accuracy'],
+                   n=1200):
     model = Sequential([
         Input(shape=input_shape, dtype='float32', name='input'),
         Conv2D(8, (9, 9), (3, 5), activation='relu'),
@@ -194,10 +200,10 @@ def gen_simple_bnn(prior=prior, posterior=posterior,
         Flatten(),
         tfpl.DenseVariational(
             tfpl.OneHotCategorical.params_size(output_shape),
-            make_posterior_fn=posterior,
             make_prior_fn=prior,
-            kl_weight=1/batch_size,
-            kl_use_exact=False
+            make_posterior_fn=posterior,
+            kl_weight=1/n,
+            kl_use_exact=True
         ),
         tfpl.OneHotCategorical(output_shape,
                                convert_to_tensor_fn=tfd.Distribution.mode)
@@ -227,6 +233,9 @@ if __name__ == '__main__':
                               for i in [1, 2, 3]])
     data_val = get_dataset('Data/esc50_multi_tfr/fold_4.tfrecords')
     data_test = get_dataset('Data/esc50_multi_tfr/fold_5.tfrecords')
-    model = gen_simple_bnn()
+    model = gen_simple_bnn(n=len_batched_tf_data(data_train))
     train_model(model, data_train, data_val, epochs=100)
     evaluate_model(model, data_test)
+
+
+
