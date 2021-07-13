@@ -111,7 +111,7 @@ def posterior(kernel_size, bias_size, dtype=None):
 
 def gen_bnn_model(prior=prior, posterior=posterior,
                   batch_size=16, input_shape=(128, 431, 3), output_shape=50,
-                  loss=nll, optimizer=Adam(1e-2), metrics=None):
+                  loss=nll, optimizer=Adam(1e-2), metrics=['accuracy']):
     model = Sequential([
         Input(shape=input_shape, dtype='float32', name='input'),
         BatchNormalization(),
