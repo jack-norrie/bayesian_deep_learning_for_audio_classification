@@ -5,6 +5,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras import regularizers
 from tensorflow.keras.optimizers import Adam
 import tensorflow_probability as tfp
+tfd = tfp.distributions
 tfpl = tfp.layers
 from functools import partial
 efn = tf.keras.applications.efficientnet
@@ -49,8 +50,9 @@ def load_dataset(filenames):
     # returns a dataset of (image, label)
     return dataset
 
-def get_dataset(filenames):
+def get_dataset(filenames, classes=50):
     dataset = load_dataset(filenames)
+    dataset = dataset.map(lambda x, y: (x, tf.one_hot(y, classes))) #OHE
     dataset = dataset.shuffle(2048)
     dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
     dataset = dataset.batch(16)
@@ -83,40 +85,83 @@ def gen_efn_model(input_shape=(128, 431, 3), output_shape=50):
         dropout,
         output
     ])
+
     model.summary()
+
+    model.compile(Adam(lr=1e-2),
+                  loss='sparse_categorical_crossentropy',
+                  metrics=['sparse_categorical_accuracy'])
 
     return model
 
-def gen_bnn_model(input_shape=(128, 431, 3), output_shape=50):
+def nll(y_true, y_pred):
+    return -y_pred.log_prob(y_true)
+
+def prior(kernel_size, bias_size, dtype=None):
+    n = kernel_size + bias_size
+    return lambda t : tfd.MultivariateNormalDiag(loc=tf.zeros(n),
+                                                 scale_diag=tf.ones(n))
+
+def posterior(kernel_size, bias_size, dtype=None):
+    n = kernel_size + bias_size
+    return Sequential([
+        tfpl.VariableLayer(tfpl.IndependentNormal.params_size(n)),
+        tfpl.IndependentNormal(n)
+    ])
+
+def gen_bnn_model(prior=prior, posterior=posterior,
+                  batch_size=16, input_shape=(128, 431, 3), output_shape=50,
+                  loss=nll, optimizer=Adam(1e-2), metrics=None):
     model = Sequential([
         Input(shape=input_shape, dtype='float32', name='input'),
         BatchNormalization(),
         tfpl.Convolution2DReparameterization(8, (9, 9), (3, 3),
-                                             activation='relu'),
+                                             activation='relu',
+                                             bias_prior_fn=tfp.layers.default_multivariate_normal_fn,
+                                             bias_posterior_fn=tfpl.util.default_mean_field_normal_fn()),
         tfpl.Convolution2DReparameterization(16, (5, 5), (2, 2),
-                                             activation='relu'),
+                                             activation='relu',
+                                             bias_prior_fn=tfp.layers.default_multivariate_normal_fn,
+                                             bias_posterior_fn=tfpl.util.default_mean_field_normal_fn()),
         MaxPool2D(),
         tfpl.Convolution2DReparameterization(32, (3, 3), (1, 1),
-                                             activation='relu'),
+                                             activation='relu',
+                                             bias_prior_fn=tfp.layers.default_multivariate_normal_fn,
+                                             bias_posterior_fn=tfpl.util.default_mean_field_normal_fn()),
         MaxPool2D(),
         Permute((3, 2, 1)),
         tfpl.Convolution2DReparameterization(8, (3, 3), (1, 1),
-                                             activation='relu'),
+                                             activation='relu',
+                                             bias_prior_fn=tfp.layers.default_multivariate_normal_fn,
+                                             bias_posterior_fn=tfpl.util.default_mean_field_normal_fn()),
         MaxPool2D(),
         tfpl.Convolution2DReparameterization(16, (3, 3), (1, 1),
-                                             activation='relu'),
+                                             activation='relu',
+                                             bias_prior_fn=tfp.layers.default_multivariate_normal_fn,
+                                             bias_posterior_fn=tfpl.util.default_mean_field_normal_fn()),
         AvgPool2D(),
         Flatten(),
         Dropout(0.2),
-        tfpl.DenseReparameterization(output_shape, activation='softmax')
+        tfpl.DenseVariational(
+            tfpl.OneHotCategorical.params_size(10),
+            make_posterior_fn=posterior,
+            make_prior_fn=prior,
+            kl_weight=1/batch_size,
+            kl_use_exact=False
+        ),
+        tfpl.OneHotCategorical(output_shape,
+                               convert_to_tensor_fn=tfd.Distribution.mode)
     ])
+
     model.summary()
+
+    model.compile(optimizer=optimizer,
+                  loss=loss,
+                  metrics=metrics)
+
     return model
 
 def train_model(model, data, validation_data=None, epochs=100):
-    model.compile(Adam(lr=1e-2),
-                  loss='sparse_categorical_crossentropy',
-                  metrics=['sparse_categorical_accuracy'])
     model.fit(data,
               validation_data=validation_data,
               epochs=epochs)
