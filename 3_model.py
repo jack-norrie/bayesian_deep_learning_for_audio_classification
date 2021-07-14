@@ -262,7 +262,7 @@ if __name__ == '__main__':
     data_val = get_dataset('Data/esc50_multi_tfr/fold_4.tfrecords')
     data_test = get_dataset('Data/esc50_multi_tfr/fold_5.tfrecords')
     model = gen_simple_bnn()
-    train_model(model, data_train, data_val, epochs=1000)
+    train_model(model, data_train, data_val, epochs=200)
     evaluate_model(model, data_test)
 
 
