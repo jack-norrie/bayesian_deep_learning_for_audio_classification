@@ -207,7 +207,7 @@ def gen_simple_bnn(input_shape=(128, 431, 3), output_shape=50,
                 is_singular=False),
             bias_divergence_fn=divergence_fn
         ),
-        MaxPool2D(pool_size=16),
+        MaxPool2D(pool_size=8),
         Flatten(),
         tfpl.DenseReparameterization(
             units=tfpl.OneHotCategorical.params_size(output_shape),
