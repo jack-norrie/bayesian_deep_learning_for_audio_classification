@@ -24,8 +24,6 @@ def get_log_mel_spectrograms(waveforms, sample_rate=44100, normalise=True):
             log_mel_spectrograms_list.append(librosa.util.normalize(s_log))
         else:
             log_mel_spectrograms_list.append(s_log)
-
-
     log_mel_spectrograms = np.stack(log_mel_spectrograms_list)
     return log_mel_spectrograms
 
