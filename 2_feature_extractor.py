@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 import librosa
 
-def get_log_mel_spectrograms(waveforms, sample_rate=44100):
+def get_log_mel_spectrograms(waveforms, sample_rate=44100, normalise=True):
     """ Generates the log-mel-spectrograms from a matrix of waveforms.
 
     Args:
@@ -20,7 +20,12 @@ def get_log_mel_spectrograms(waveforms, sample_rate=44100):
     for i in range(n):
         s = librosa.feature.melspectrogram(y=waveforms[i], sr=sample_rate)
         s_log = librosa.power_to_db(s, ref=np.max)
-        log_mel_spectrograms_list.append(s_log)
+        if normalise:
+            log_mel_spectrograms_list.append(librosa.util.normalize(s_log))
+        else:
+            log_mel_spectrograms_list.append(s_log)
+
+
     log_mel_spectrograms = np.stack(log_mel_spectrograms_list)
     return log_mel_spectrograms
 
