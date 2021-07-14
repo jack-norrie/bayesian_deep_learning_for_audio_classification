@@ -52,7 +52,7 @@ def load_dataset(filenames):
 
 def get_dataset(filenames, classes=50):
     dataset = load_dataset(filenames)
-    dataset = dataset.map(lambda x, y: (x, tf.one_hot(y, classes))) #OHE
+    dataset = dataset.map(lambda x, y: (x[:, :, 0], tf.one_hot(y, classes))) #OHE
     dataset = dataset.shuffle(2048)
     dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
     dataset = dataset.batch(16)
@@ -187,7 +187,7 @@ def gen_simple_cnn(input_shape=(128, 431, 3), output_shape=50,
 
     return model
 
-def gen_simple_bnn(input_shape=(128, 431, 3), output_shape=50,
+def gen_simple_bnn(input_shape=(128, 431, 1), output_shape=50,
                   loss=nll, optimizer=RMSprop(), metrics=['accuracy'],
                    n=1200):
 
