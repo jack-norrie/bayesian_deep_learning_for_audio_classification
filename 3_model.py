@@ -52,7 +52,8 @@ def load_dataset(filenames):
 
 def get_dataset(filenames, classes=50):
     dataset = load_dataset(filenames)
-    dataset = dataset.map(lambda x, y: (x[:, :, 0], tf.one_hot(y, classes))) #OHE
+    dataset = dataset.map(lambda x, y: (x[:, :, 0][..., tf.newaxis],
+                                        tf.one_hot(y, classes))) #OHE
     dataset = dataset.shuffle(2048)
     dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
     dataset = dataset.batch(16)
