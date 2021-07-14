@@ -187,26 +187,41 @@ def gen_simple_cnn(input_shape=(128, 431, 3), output_shape=50,
 
     return model
 
-def gen_simple_bnn(prior=prior, posterior=posterior,
-                  batch_size=16, input_shape=(128, 431, 3), output_shape=50,
-                  loss=nll, optimizer=RMSprop(1e-4), metrics=['accuracy'],
+def gen_simple_bnn(input_shape=(128, 431, 3), output_shape=50,
+                  loss=nll, optimizer=RMSprop(), metrics=['accuracy'],
                    n=1200):
+
+    divergence_fn = lambda q, p, _: tfd.kl_divergence(q, p) / n
+
     model = Sequential([
         Input(shape=input_shape, dtype='float32', name='input'),
-        Conv2D(8, (9, 9), (3, 5), activation='relu'),
-        MaxPool2D(),
-        Conv2D(16, (5, 5), (2, 3), activation='relu'),
-        MaxPool2D(),
-        Flatten(),
-        tfpl.DenseVariational(
-            tfpl.OneHotCategorical.params_size(output_shape),
-            make_prior_fn=prior,
-            make_posterior_fn=posterior,
-            kl_weight=1/n,
-            kl_use_exact=False
+        tfpl.Convolution2DReparameterization(
+            filters=8, kernel_size=16, strides=(4, 8),
+            activation='relu',
+            kernel_prior_fn=tfpl.default_multivariate_normal_fn,
+            kernel_posterior_fn=tfpl.default_mean_field_normal_fn(
+                is_singular=False),
+            kernel_divergence_fn=divergence_fn,
+            bias_prior_fn=tfpl.default_multivariate_normal_fn,
+            bias_posterior_fn=tfpl.default_mean_field_normal_fn(
+                is_singular=False),
+            bias_divergence_fn=divergence_fn
         ),
-        tfpl.OneHotCategorical(output_shape,
-                               convert_to_tensor_fn=tfd.Distribution.mode)
+        MaxPool2D(pool_size=16),
+        Flatten(),
+        tfpl.DenseReparameterization(
+            units=tfpl.OneHotCategorical.params_size(output_shape),
+            activation=None,
+            kernel_prior_fn=tfpl.default_multivariate_normal_fn,
+            kernel_posterior_fn=tfpl.default_mean_field_normal_fn(
+                is_singular=False),
+            kernel_divergence_fn=divergence_fn,
+            bias_prior_fn=tfpl.default_multivariate_normal_fn,
+            bias_posterior_fn=tfpl.default_mean_field_normal_fn(
+                is_singular=False),
+            bias_divergence_fn=divergence_fn
+        ),
+        tfpl.OneHotCategorical(output_shape)
     ])
 
     model.summary()
