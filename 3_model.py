@@ -223,7 +223,7 @@ def gen_simple_bnn(input_shape=(128, 431, 1), output_shape=50,
         MaxPool2D(pool_size=4),
         Flatten(),
         BatchNormalization(),
-        Dropout(0.2)
+        Dropout(0.2),
         tfpl.DenseReparameterization(
             units=tfpl.OneHotCategorical.params_size(output_shape),
             activation=None,
