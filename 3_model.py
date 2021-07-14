@@ -56,7 +56,7 @@ def get_dataset(filenames, classes=50):
                                         tf.one_hot(y, classes))) #OHE
     dataset = dataset.shuffle(2048)
     dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-    dataset = dataset.batch(16)
+    dataset = dataset.batch(256)
     return dataset
 
 def len_batched_tf_data(batched_data):
@@ -250,7 +250,7 @@ if __name__ == '__main__':
     data_val = get_dataset('Data/esc50_multi_tfr/fold_4.tfrecords')
     data_test = get_dataset('Data/esc50_multi_tfr/fold_5.tfrecords')
     model = gen_simple_bnn()
-    train_model(model, data_train, data_val, epochs=100)
+    train_model(model, data_train, data_val, epochs=1000)
     evaluate_model(model, data_test)
 
 
