@@ -196,7 +196,6 @@ def gen_simple_bnn(input_shape=(128, 431, 1), output_shape=50,
 
     model = Sequential([
         Input(shape=input_shape, dtype='float32', name='input'),
-        BatchNormalization(),
         tfpl.Convolution2DReparameterization(
             filters=8, kernel_size=16, strides=(4, 8),
             activation='relu',
@@ -224,6 +223,7 @@ def gen_simple_bnn(input_shape=(128, 431, 1), output_shape=50,
         MaxPool2D(pool_size=4),
         Flatten(),
         BatchNormalization(),
+        Dropout(0.2)
         tfpl.DenseReparameterization(
             units=tfpl.OneHotCategorical.params_size(output_shape),
             activation=None,
