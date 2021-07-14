@@ -50,13 +50,13 @@ def load_dataset(filenames):
     # returns a dataset of (image, label)
     return dataset
 
-def get_dataset(filenames, classes=50):
+def get_dataset(filenames, batch_size = 16, classes=50):
     dataset = load_dataset(filenames)
     dataset = dataset.map(lambda x, y: (x[:, :, 0][..., tf.newaxis],
                                         tf.one_hot(y, classes))) #OHE
     dataset = dataset.shuffle(2048)
     dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-    dataset = dataset.batch(256)
+    dataset = dataset.batch(batch_size)
     return dataset
 
 def len_batched_tf_data(batched_data):
@@ -208,7 +208,19 @@ def gen_simple_bnn(input_shape=(128, 431, 1), output_shape=50,
                 is_singular=False),
             bias_divergence_fn=divergence_fn
         ),
-        MaxPool2D(pool_size=8),
+        tfpl.Convolution2DReparameterization(
+            filters=16, kernel_size=8, strides=(2, 4),
+            activation='relu',
+            kernel_prior_fn=tfpl.default_multivariate_normal_fn,
+            kernel_posterior_fn=tfpl.default_mean_field_normal_fn(
+                is_singular=False),
+            kernel_divergence_fn=divergence_fn,
+            bias_prior_fn=tfpl.default_multivariate_normal_fn,
+            bias_posterior_fn=tfpl.default_mean_field_normal_fn(
+                is_singular=False),
+            bias_divergence_fn=divergence_fn
+        ),
+        MaxPool2D(pool_size=4),
         Flatten(),
         tfpl.DenseReparameterization(
             units=tfpl.OneHotCategorical.params_size(output_shape),
