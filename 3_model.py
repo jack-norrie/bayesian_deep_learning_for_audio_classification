@@ -96,8 +96,8 @@ def gen_efn_model(input_shape=(128, 431, 3), output_shape=50):
     model.summary()
 
     model.compile(Adam(lr=1e-2),
-                  loss='sparse_categorical_crossentropy',
-                  metrics=['sparse_categorical_accuracy'])
+                  loss='categorical_crossentropy',
+                  metrics=['categorical_accuracy'])
 
     return model
 
