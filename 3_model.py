@@ -283,15 +283,13 @@ def evaluate_model(model, data):
         output.write(str(results))
 
 
-# This is a test
-
 if __name__ == '__main__':
     data_train = get_dataset([f'Data/esc50_multi_tfr/fold_{i}.tfrecords'
                               for i in [1, 2, 3]])
     data_val = get_dataset('Data/esc50_multi_tfr/fold_4.tfrecords')
     data_test = get_dataset('Data/esc50_multi_tfr/fold_5.tfrecords')
-    model = gen_simple_bnn()
-    train_model(model, data_train, data_val, epochs=200)
+    model = gen_efn_model()
+    train_model(model, data_train, data_val, epochs=50)
     evaluate_model(model, data_test)
 
 
