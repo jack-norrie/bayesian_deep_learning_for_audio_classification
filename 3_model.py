@@ -248,6 +248,30 @@ def gen_simple_bnn(input_shape=(128, 431, 1), output_shape=50,
 
     return model
 
+def gen_acdnet(input_shape=(128, 431, 3), output_shape=50,
+                  loss=nll, optimizer=RMSprop(), metrics=['accuracy']):
+    model = Sequential([
+        Input(shape=input_shape, dtype='float32', name='input'),
+        Conv2D(8, (9, 9), (3, 5), activation='relu'),
+        MaxPool2D(),
+        Conv2D(16, (5, 5), (2, 3), activation='relu'),
+        MaxPool2D(),
+        Flatten(),
+        Dense(tfpl.OneHotCategorical.params_size(output_shape)),
+        tfpl.OneHotCategorical(output_shape,
+                               convert_to_tensor_fn=tfd.Distribution.mode)
+    ])
+
+    model.summary()
+
+    model.compile(optimizer=optimizer,
+                  loss=loss,
+                  metrics=metrics)
+
+    return model
+
+
+
 def train_model(model, data, validation_data=None, epochs=100):
     model.fit(data,
               validation_data=validation_data,
@@ -258,6 +282,8 @@ def evaluate_model(model, data):
     with open('Models/Results/result.txt', 'w') as output:
         output.write(str(results))
 
+
+# This is a test
 
 if __name__ == '__main__':
     data_train = get_dataset([f'Data/esc50_multi_tfr/fold_{i}.tfrecords'
