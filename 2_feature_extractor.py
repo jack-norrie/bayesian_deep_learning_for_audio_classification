@@ -45,6 +45,54 @@ def serialize_array(array):
     array = tf.io.serialize_tensor(tf.cast(array, tf.float32))
     return array
 
+def parse_single_waveform(waveform, label):
+    # define the dictionary -- the structure -- of our single example
+    data = {
+        'waveform': _bytes_feature(serialize_array(waveform)),
+        'label': _int64_feature(label)
+    }
+    # create an Example, wrapping the single features
+    out = tf.train.Example(features=tf.train.Features(feature=data))
+    return out
+
+def write_waveforms_to_tfr_short(waveforms, labels, filename):
+    """Writes images to a TFRecord"""
+    filename= filename+".tfrecords"
+    writer = tf.io.TFRecordWriter(filename)
+    count = 0
+
+    for index in range(len(waveforms)):
+
+        # get the data we to write
+        current_waveform = waveforms[index]
+        current_label = labels[index]
+
+        out = parse_single_waveform(waveform=current_waveform,
+                                    label=current_label)
+        writer.write(out.SerializeToString())
+        count += 1
+
+    writer.close()
+    print(f"Wrote {count} waveforms to TFRecord")
+    return count
+
+def fold_wav_extractor(fold, fpath, sample_rate=44100):
+    """Extracts waveforms for a certain fold of the data"""
+    waveforms = np.load(fpath + f'/X_{fold}.npy')
+    labels = np.load(fpath + f'/y_{fold}.npy')
+    return waveforms, np.squeeze(labels.astype(np.int64))
+
+def wav_extractor(in_fpath='Data/esc50_tabulated',
+                  out_fpath='Data/esc50_multi_tfr/fold',
+                  num_folds=5):
+    """Extracts and writes waveforms into TFRecords"""
+    for fold in range(1, num_folds):
+        waveforms, labels = \
+            fold_wav_extractor(fold, in_fpath)
+        write_waveforms_to_tfr_short(waveforms,
+                                        labels,
+                                        f'{out_fpath}_{fold}')
+
 def parse_single_image(image, label):
     # define the dictionary -- the structure -- of our single example
     data = {
@@ -59,7 +107,7 @@ def parse_single_image(image, label):
 
     return out
 
-def write_images_to_tfr_short(images, labels, filename):
+def write_spectrograms_to_tfr_short(images, labels, filename):
     """Writes images to a TFRecord"""
     filename= filename+".tfrecords"
     writer = tf.io.TFRecordWriter(filename) #create a writer that'll store data to disk
@@ -76,10 +124,10 @@ def write_images_to_tfr_short(images, labels, filename):
         count += 1
 
     writer.close()
-    print(f"Wrote {count} elements to TFRecord")
+    print(f"Wrote {count} spectrograms to TFRecord")
     return count
 
-def fold_feature_extractor(fold, fpath, sample_rate=44100):
+def fold_mel_extractor(fold, fpath, sample_rate=44100):
     """Extracts mel spectrograms for a certain fold of the data"""
     waveforms = np.load(fpath + f'/X_{fold}.npy')
     labels = np.load(fpath + f'/y_{fold}.npy')
@@ -88,7 +136,18 @@ def fold_feature_extractor(fold, fpath, sample_rate=44100):
     return log_mel_spectrograms[..., np.newaxis],\
            np.squeeze(labels.astype(np.int64))
 
-def fold_multi_channel_feature_extractor(fold, fpath, sample_rate=44100):
+def mel_extractor(in_fpath='Data/esc50_tabulated',
+                  out_fpath='Data/esc50_multi_tfr/fold',
+                  num_folds=5):
+    """Extracts and writes mel spectrograms into TFRecords"""
+    for fold in range(1, num_folds+1):
+        log_mel_spectrograms, labels =\
+            fold_mel_extractor(fold, in_fpath)
+        write_spectrograms_to_tfr_short(log_mel_spectrograms,
+                                  labels,
+                                  f'{out_fpath}_{fold}')
+
+def fold_multi_mel_extractor(fold, fpath, sample_rate=44100):
     """Extracts 3-channel mel spectrograms for a certain fold of the data"""
     waveforms = np.load(fpath + f'/X_{fold}.npy')
     labels = np.load(fpath + f'/y_{fold}.npy')
@@ -107,12 +166,20 @@ def fold_multi_channel_feature_extractor(fold, fpath, sample_rate=44100):
     return np.stack(np.squeeze(spec_wavs), axis=0),\
            np.squeeze(labels.astype(np.int64))
 
-if __name__ == '__main__':
-    for fold in range(1, 5+1):
+def multi_mel_extractor(in_fpath='Data/esc50_tabulated',
+                  out_fpath='Data/esc50_multi_tfr/fold',
+                  num_folds=5):
+    """Extracts and writes multi-channel mel spectrograms into TFRecords"""
+    for fold in range(1, num_folds+1):
         multi_log_mel_spectrograms, labels =\
-            fold_multi_channel_feature_extractor(fold, 'Data/esc50_tabulated')
-        write_images_to_tfr_short(multi_log_mel_spectrograms,
+            fold_multi_mel_extractor(fold, in_fpath)
+        write_spectrograms_to_tfr_short(multi_log_mel_spectrograms,
                                   labels,
-                                  f'Data/esc50_multi_tfr/fold_{fold}')
+                                  f'{out_fpath}_{fold}')
+
+
+if __name__ == '__main__':
+    multi_mel_extractor()
+
 
 
