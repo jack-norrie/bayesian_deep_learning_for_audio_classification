@@ -83,7 +83,7 @@ def fold_wav_extractor(fold, fpath, sample_rate=44100):
     return waveforms, np.squeeze(labels.astype(np.int64))
 
 def wav_extractor(in_fpath='Data/esc50_tabulated',
-                  out_fpath='Data/esc50_multi_tfr/fold',
+                  out_fpath='Data/esc50_wav_tfr/raw/fold',
                   num_folds=5):
     """Extracts and writes waveforms into TFRecords"""
     for fold in range(1, num_folds):
@@ -137,7 +137,7 @@ def fold_mel_extractor(fold, fpath, sample_rate=44100):
            np.squeeze(labels.astype(np.int64))
 
 def mel_extractor(in_fpath='Data/esc50_tabulated',
-                  out_fpath='Data/esc50_multi_tfr/fold',
+                  out_fpath='Data/esc50_mel_tfr/raw/fold',
                   num_folds=5):
     """Extracts and writes mel spectrograms into TFRecords"""
     for fold in range(1, num_folds+1):
@@ -167,7 +167,7 @@ def fold_multi_mel_extractor(fold, fpath, sample_rate=44100):
            np.squeeze(labels.astype(np.int64))
 
 def multi_mel_extractor(in_fpath='Data/esc50_tabulated',
-                  out_fpath='Data/esc50_multi_tfr/fold',
+                  out_fpath='Data/esc50_multi_mel_tfr/raw/fold',
                   num_folds=5):
     """Extracts and writes multi-channel mel spectrograms into TFRecords"""
     for fold in range(1, num_folds+1):
@@ -179,6 +179,8 @@ def multi_mel_extractor(in_fpath='Data/esc50_tabulated',
 
 
 if __name__ == '__main__':
+    wav_extractor()
+    mel_extractor()
     multi_mel_extractor()
 
 
