@@ -397,6 +397,19 @@ def train_acdnet():
     model = gen_acdnet_insp()
 
     def scheduler(epoch, lr):
+        if epoch < 10:
+            return 0.01
+        elif epoch < 400:
+            return 0.1
+        elif epoch < 800:
+            return 0.01
+        elif epoch < 1200:
+            return 0.001
+        elif epoch < 1600:
+            return 0.0001
+        else:
+            return 0.00001
+
         if epoch in [400, 800, 1200, 1600]:
             return lr * 0.1
         else:
