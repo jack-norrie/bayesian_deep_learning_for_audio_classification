@@ -380,11 +380,14 @@ def evaluate_model(model, data):
 def train_acdnet():
     data_train = get_dataset([f'Data/esc50_wav_tfr/raw/fold_{i}.tfrecords'
                               for i in [1, 2, 3]],
-                             reader=read_waveform_tfrecord)
+                             reader=read_waveform_tfrecord,
+                             batch_size=64)
     data_val = get_dataset('Data/esc50_wav_tfr/raw/fold_4.tfrecords',
-                           reader=read_waveform_tfrecord)
+                           reader=read_waveform_tfrecord,
+                           batch_size=64)
     data_test = get_dataset('Data/esc50_wav_tfr/raw/fold_5.tfrecords',
-                            reader=read_waveform_tfrecord)
+                            reader=read_waveform_tfrecord,
+                            batch_size=64)
     model = gen_acdnet_insp()
     train_model(model, data_train, data_val, epochs=50)
     evaluate_model(model, data_test)
