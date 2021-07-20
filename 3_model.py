@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Input, Dense, Dropout, BatchNormalization,\
-    MaxPool2D, AvgPool2D, Flatten, Permute, Conv2D
+    MaxPool2D, AvgPool2D, Flatten, Permute, Conv1D, Conv2D
 from tensorflow.keras.models import Sequential
 from tensorflow.keras import regularizers
 from tensorflow.keras.optimizers import Adam, RMSprop
@@ -10,7 +10,23 @@ tfpl = tfp.layers
 from functools import partial
 efn = tf.keras.applications.efficientnet
 
-def read_waveform_tfrecord
+def read_waveform_tfrecord(example):
+    tfrecord_format = {
+        'waveform': tf.io.FixedLenFeature([], tf.string),
+        'label': tf.io.FixedLenFeature([], tf.int64)
+    }
+
+    example = tf.io.parse_single_example(example, tfrecord_format)
+
+    # Extract content
+    waveform = example['waveform']
+    label = example['label']
+
+    # Process content
+    waveform = tf.io.parse_tensor(waveform, out_type=tf.float32)
+    waveform = tf.reshape(waveform, shape=[1, 220500, 1])
+
+    return waveform, label
 
 def read_spectrogram_tfrecord(example):
     tfrecord_format = {
@@ -36,7 +52,7 @@ def read_spectrogram_tfrecord(example):
 
     return image, label
 
-def load_dataset(filenames):
+def load_dataset(filenames, reader=read_waveform_tfrecord):
     ignore_order = tf.data.Options()
     ignore_order.experimental_deterministic = False  # disable order, increase speed
     dataset = tf.data.TFRecordDataset(
@@ -46,14 +62,14 @@ def load_dataset(filenames):
         ignore_order
     )  # uses data as soon as it streams in, rather than in its original order
     dataset = dataset.map(
-        partial(read_spectrogram_tfrecord),
+        partial(reader),
         num_parallel_calls=tf.data.experimental.AUTOTUNE
     )
     # returns a dataset of (image, label)
     return dataset
 
-def get_dataset(filenames, batch_size = 16, classes=50):
-    dataset = load_dataset(filenames)
+def get_dataset(filenames, reader=read_waveform_tfrecord, batch_size = 16, classes=50):
+    dataset = load_dataset(filenames, reader=reader)
     dataset = dataset.map(lambda x, y: (x, tf.one_hot(y, classes))) #OHE
     dataset = dataset.shuffle(2048)
     dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
@@ -249,19 +265,49 @@ def gen_simple_bnn(input_shape=(128, 431, 1), output_shape=50,
 
     return model
 
-def gen_acdnet(input_shape=(128, 431, 3), output_shape=50,
-                  loss=nll, optimizer=RMSprop(), metrics=['accuracy']):
+def gen_acdnet(input_shape=(1, 220500, 1), num_classes=50,
+               loss='categorical_crossentropy',
+               optimizer=Adam(),
+               metrics=['accuracy']):
     model = Sequential([
         Input(shape=input_shape, dtype='float32', name='input'),
-        Conv2D(8, (9, 9), (3, 5), activation='relu'),
-        MaxPool2D(),
-        Conv2D(16, (5, 5), (2, 3), activation='relu'),
-        MaxPool2D(),
+        Conv2D(filters=8, kernel_size=(1, 9), strides=(1, 2),
+               activation='relu'),
+        Conv2D(filters=64, kernel_size=(1, 5), strides=(1, 2),
+               activation='relu'),
+        MaxPool2D(pool_size=(1, 110), strides=(1, 110)),
+        Permute((3, 2, 1)),
+        Conv2D(filters=32, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu'),
+        MaxPool2D(pool_size=(2, 2), strides=(2, 2)),
+        Conv2D(filters=64, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu'),
+        Conv2D(filters=64, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu'),
+        MaxPool2D(pool_size=(2, 2), strides=(2, 2)),
+        Conv2D(filters=128, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu'),
+        Conv2D(filters=128, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu'),
+        MaxPool2D(pool_size=(2, 2), strides=(2, 2)),
+        Conv2D(filters=256, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu'),
+        Conv2D(filters=256, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu'),
+        MaxPool2D(pool_size=(2, 2), strides=(2, 2)),
+        Conv2D(filters=512, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu'),
+        Conv2D(filters=512, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu'),
+        MaxPool2D(pool_size=(2, 2), strides=(2, 2)),
+        Dropout(0.2),
+        Conv2D(filters=num_classes, kernel_size=(1, 1), strides=(1, 1),
+               activation='relu'),
+        AvgPool2D(pool_size=(2, 4), strides=(2, 4)),
         Flatten(),
-        Dense(tfpl.OneHotCategorical.params_size(output_shape)),
-        tfpl.OneHotCategorical(output_shape,
-                               convert_to_tensor_fn=tfd.Distribution.mode)
+        Dense(units=num_classes, activation='softmax')
     ])
+
 
     model.summary()
 
@@ -270,6 +316,46 @@ def gen_acdnet(input_shape=(128, 431, 3), output_shape=50,
                   metrics=metrics)
 
     return model
+
+def gen_acdnet_insp(input_shape=(1, 220500, 1), num_classes=50,
+               loss='categorical_crossentropy',
+               optimizer=Adam(),
+               metrics=['accuracy']):
+    model = Sequential([
+        Input(shape=input_shape, dtype='float32', name='input'),
+        Conv2D(filters=32, kernel_size=(1, 9), strides=(1, 2),
+               activation='relu'),
+        Conv2D(filters=64, kernel_size=(1, 5), strides=(1, 2),
+               activation='relu'),
+        MaxPool2D(pool_size=(1, 25), strides=(1, 25)),
+        Conv2D(filters=128, kernel_size=(1, 3), strides=(1, 2),
+               activation='relu'),
+        MaxPool2D(pool_size=(1, 10), strides=(1, 10)),
+        Permute((3, 2, 1)),
+        Conv2D(filters=16, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu'),
+        MaxPool2D(pool_size=(2, 2), strides=(2, 2)),
+        Conv2D(filters=32, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu'),
+        MaxPool2D(pool_size=(2, 2), strides=(2, 2)),
+        Conv2D(filters=64, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu'),
+        MaxPool2D(pool_size=(2, 2), strides=(2, 2)),
+        Dropout(0.2),
+        Conv2D(filters=num_classes, kernel_size=(3, 3), strides=(2, 2),
+               activation='relu'),
+        AvgPool2D(pool_size=(6, 5), strides=(6, 5)),
+        Flatten(),
+        Dense(units=num_classes, activation='softmax')
+    ])
+    model.summary()
+
+    model.compile(optimizer=optimizer,
+                  loss=loss,
+                  metrics=metrics)
+
+    return model
+
 
 
 
@@ -283,15 +369,21 @@ def evaluate_model(model, data):
     with open('Models/Results/result.txt', 'w') as output:
         output.write(str(results))
 
-
-if __name__ == '__main__':
-    data_train = get_dataset([f'Data/esc50_multi_tfr/fold_{i}.tfrecords'
-                              for i in [1, 2, 3]])
-    data_val = get_dataset('Data/esc50_multi_tfr/fold_4.tfrecords')
-    data_test = get_dataset('Data/esc50_multi_tfr/fold_5.tfrecords')
-    model = gen_efn_model()
+def train_acdnet():
+    data_train = get_dataset([f'Data/esc50_wav_tfr/raw/fold_{i}.tfrecords'
+                              for i in [1, 2, 3]],
+                             reader=read_waveform_tfrecord)
+    data_val = get_dataset('Data/esc50_wav_tfr/raw/fold_4.tfrecords',
+                           reader=read_waveform_tfrecord)
+    data_test = get_dataset('Data/esc50_wav_tfr/raw/fold_5.tfrecords',
+                            reader=read_waveform_tfrecord)
+    model = gen_acdnet_insp()
     train_model(model, data_train, data_val, epochs=50)
     evaluate_model(model, data_test)
 
+if __name__ == '__main__':
+    train_acdnet()
 
 
+sample = next(iter(data_train))
+import matplotlib.pyplot as plt
