@@ -86,7 +86,7 @@ def wav_extractor(in_fpath='Data/esc50_tabulated',
                   out_fpath='Data/esc50_wav_tfr/raw/fold',
                   num_folds=5):
     """Extracts and writes waveforms into TFRecords"""
-    for fold in range(1, num_folds):
+    for fold in range(1, num_folds+1):
         waveforms, labels = \
             fold_wav_extractor(fold, in_fpath)
         write_waveforms_to_tfr_short(waveforms,

@@ -10,7 +10,9 @@ tfpl = tfp.layers
 from functools import partial
 efn = tf.keras.applications.efficientnet
 
-def read_tfrecord(example):
+def read_waveform_tfrecord
+
+def read_spectrogram_tfrecord(example):
     tfrecord_format = {
         'height': tf.io.FixedLenFeature([], tf.int64),
         'width': tf.io.FixedLenFeature([], tf.int64),
@@ -44,7 +46,7 @@ def load_dataset(filenames):
         ignore_order
     )  # uses data as soon as it streams in, rather than in its original order
     dataset = dataset.map(
-        partial(read_tfrecord),
+        partial(read_spectrogram_tfrecord),
         num_parallel_calls=tf.data.experimental.AUTOTUNE
     )
     # returns a dataset of (image, label)
