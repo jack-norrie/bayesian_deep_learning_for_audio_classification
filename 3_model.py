@@ -3,7 +3,7 @@ from tensorflow.keras.layers import Input, Dense, Dropout, BatchNormalization,\
     MaxPool2D, AvgPool2D, Flatten, Permute, Conv1D, Conv2D
 from tensorflow.keras.models import Sequential
 from tensorflow.keras import regularizers
-from tensorflow.keras.optimizers import Adam, RMSprop
+from tensorflow.keras.optimizers import Adam, RMSprop, SGD
 import tensorflow_probability as tfp
 tfd = tfp.distributions
 tfpl = tfp.layers
@@ -319,47 +319,47 @@ def gen_acdnet(input_shape=(1, 220500, 1), num_classes=50,
 
 def gen_acdnet_insp(input_shape=(1, 220500, 1), num_classes=50,
                loss='categorical_crossentropy',
-               optimizer=Adam(),
+               optimizer=SGD(learning_rate=0.1, nesterov=0.9),
                metrics=['accuracy']):
     model = Sequential([
         Input(shape=input_shape, dtype='float32', name='input'),
         BatchNormalization(),
         Conv2D(filters=16, kernel_size=(1, 9), strides=(1, 3),
                activation='relu',
-               kernel_regularizer=regularizers.l2()),
+               kernel_regularizer=regularizers.l2(5e-4)),
         Conv2D(filters=32, kernel_size=(1, 5), strides=(1, 3),
                activation='relu',
-               kernel_regularizer=regularizers.l2()),
+               kernel_regularizer=regularizers.l2(5e-4)),
         Conv2D(filters=64, kernel_size=(1, 3), strides=(1, 3),
                activation='relu',
-               kernel_regularizer=regularizers.l2()),
+               kernel_regularizer=regularizers.l2(5e-4)),
         MaxPool2D(pool_size=(1, 100), strides=(1, 100)),
         BatchNormalization(),
         Permute((3, 2, 1)),
         Conv2D(filters=16, kernel_size=(3, 3), strides=(1, 1),
                activation='relu',
-               kernel_regularizer=regularizers.l2()),
+               kernel_regularizer=regularizers.l2(5e-4)),
         Conv2D(filters=16, kernel_size=(3, 3), strides=(1, 1),
                activation='relu',
-               kernel_regularizer=regularizers.l2()),
+               kernel_regularizer=regularizers.l2(5e-4)),
         MaxPool2D(pool_size=(2, 2), strides=(2, 2)),
         Conv2D(filters=32, kernel_size=(3, 3), strides=(1, 1),
                activation='relu',
-               kernel_regularizer=regularizers.l2()),
+               kernel_regularizer=regularizers.l2(5e-4)),
         Conv2D(filters=32, kernel_size=(3, 3), strides=(1, 1),
                activation='relu',
-               kernel_regularizer=regularizers.l2()),
+               kernel_regularizer=regularizers.l2(5e-4)),
         MaxPool2D(pool_size=(2, 2), strides=(2, 2)),
         BatchNormalization(),
         Dropout(0.2),
         Conv2D(filters=num_classes, kernel_size=(2, 2), strides=(2, 2),
                activation='relu',
-               kernel_regularizer=regularizers.l2()),
+               kernel_regularizer=regularizers.l2(5e-4)),
         AvgPool2D(pool_size=(6, 8), strides=(6, 8)),
         Flatten(),
         BatchNormalization(),
         Dense(units=num_classes, activation='softmax',
-               kernel_regularizer=regularizers.l2())
+               kernel_regularizer=regularizers.l2(5e-4))
     ])
     model.summary()
 
@@ -370,12 +370,12 @@ def gen_acdnet_insp(input_shape=(1, 220500, 1), num_classes=50,
     return model
 
 
-
-
-def train_model(model, data, validation_data=None, epochs=100):
+def train_model(model, data, validation_data=None, epochs=100,
+                callbacks=None):
     model.fit(data,
               validation_data=validation_data,
-              epochs=epochs)
+              epochs=epochs,
+              callbacks=callbacks)
 
 def evaluate_model(model, data):
     results = model.evaluate(data)
@@ -393,8 +393,17 @@ def train_acdnet():
     data_test = get_dataset('Data/esc50_wav_tfr/raw/fold_5.tfrecords',
                             reader=read_waveform_tfrecord,
                             batch_size=64)
+
     model = gen_acdnet_insp()
-    train_model(model, data_train, data_val, epochs=50)
+
+    def scheduler(epoch, lr):
+        if epoch in [400, 800, 1200, 1600]:
+            return lr * 0.1
+        else:
+            return lr
+    train_model(model, data_train, data_val, epochs=50,
+                callbacks=[tf.keras.callbacks.LearningRateScheduler(scheduler)])
+
     evaluate_model(model, data_test)
 
 if __name__ == '__main__':
