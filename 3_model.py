@@ -401,7 +401,7 @@ def train_acdnet():
             return lr * 0.1
         else:
             return lr
-    train_model(model, data_train, data_val, epochs=50,
+    train_model(model, data_train, data_val, epochs=2000,
                 callbacks=[tf.keras.callbacks.LearningRateScheduler(scheduler)])
 
     evaluate_model(model, data_test)
