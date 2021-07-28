@@ -68,7 +68,6 @@ def parse_single_waveform(waveform, label):
 
 def write_waveforms_to_tfr_short(waveforms, labels, filename):
     """Writes images to a TFRecord"""
-    filename= filename+".tfrecords"
     writer = tf.io.TFRecordWriter(filename)
     count = 0
 
