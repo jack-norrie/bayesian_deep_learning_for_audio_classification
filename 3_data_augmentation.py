@@ -38,6 +38,55 @@ def load_dataset(filenames, reader=read_waveform_tfrecord):
     # returns a dataset of (image, label)
     return dataset
 
+def _bytes_feature(value):
+    """Returns a bytes_list from a string / byte."""
+    if isinstance(value, type(tf.constant(0))): # if value ist tensor
+        value = value.numpy() # get value of tensor
+    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+def _float_feature(value):
+    """Returns a floast_list from a float / double."""
+    return tf.train.Feature(float_list=tf.train.FloatList(value=[value]))
+
+def _int64_feature(value):
+    """Returns an int64_list from a bool / enum / int / uint."""
+    return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+
+def serialize_array(array):
+    array = tf.io.serialize_tensor(tf.cast(array, tf.float32))
+    return array
+
+def parse_single_waveform(waveform, label):
+    # define the dictionary -- the structure -- of our single example
+    data = {
+        'waveform': _bytes_feature(serialize_array(waveform)),
+        'label': _int64_feature(label)
+    }
+    # create an Example, wrapping the single features
+    out = tf.train.Example(features=tf.train.Features(feature=data))
+    return out
+
+def write_waveforms_to_tfr_short(waveforms, labels, filename):
+    """Writes images to a TFRecord"""
+    filename= filename+".tfrecords"
+    writer = tf.io.TFRecordWriter(filename)
+    count = 0
+
+    for index in range(len(waveforms)):
+
+        # get the data we to write
+        current_waveform = waveforms[index]
+        current_label = labels[index]
+
+        out = parse_single_waveform(waveform=current_waveform,
+                                    label=current_label)
+        writer.write(out.SerializeToString())
+        count += 1
+
+    writer.close()
+    print(f"Wrote {count} waveforms to TFRecord")
+    return count
+
 def trim_pad(signal, desired_length):
     """Trims or zero-pads a signal to a specified length"""
     current_length = len(signal)
@@ -110,65 +159,85 @@ def sgn(waveform):
         aug_waveform = snr_noiser(aug_waveform)
     return aug_waveform
 
-def data_augmentor(data, augmentor, augment_factor=9,
+def data_augmentor(fpath_in, fpath_out,
+                   augmentor, augment_factor=9,
                    output_shape=[1, 220500, 1]):
-    augmented_data = []
+    """ Performs data augmentation on a specified file and outputs the result.
+
+    Args:
+        fpath_in (str): Input file path to read TFRecord.
+        fpath_out (str): Output file path to write TFRecord.
+        augmentor (function): A feature wise data augmnetation function.
+        augment_factor (int): Number of augmented samples to generate per sample.
+        output_shape (array): Shape to reshape output to
+    """
+    data = load_dataset(fpath_in, reader=read_waveform_tfrecord)
+    augmented_features = []
+    augmented_labels = []
     for sample in data:
         feature = np.squeeze(sample[0].numpy())
+        augmented_labels += [sample[1].numpy()] * augment_factor
         for _ in range(augment_factor):
-            augmented_data.append(augmentor(feature).reshape(output_shape))
-    return np.stack(augmented_data)
+            # Sometimes there are issues with the augmentor
+            while True:
+                try:
+                    augmented_feature = augmentor(feature).reshape(output_shape)
+                    augmented_features.append(augmented_feature)
+                    break
+                except:
+                    print("Error encountered during augmentation - "
+                          "discarding augmented sample")
 
-def _bytes_feature(value):
-    """Returns a bytes_list from a string / byte."""
-    if isinstance(value, type(tf.constant(0))): # if value ist tensor
-        value = value.numpy() # get value of tensor
-    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+    augmented_features = np.stack(augmented_features)
+    augmented_labels = np.stack(augmented_labels)
+    write_waveforms_to_tfr_short(augmented_features, augmented_labels, fpath_out)
 
-def _float_feature(value):
-    """Returns a floast_list from a float / double."""
-    return tf.train.Feature(float_list=tf.train.FloatList(value=[value]))
+def visualise_augmentation(feature, augmentor, augment_factor=9,
+                           x_vals=None, ncols=5, figsize=(10, 5)):
+    # Perform augmentation and plot setup
+    features = [feature]
+    for _ in range(augment_factor):
+        features.append(augmentor(feature))
+    if x_vals is None:
+        x_vals = np.arange(0, len(feature), 1)
 
-def _int64_feature(value):
-    """Returns an int64_list from a bool / enum / int / uint."""
-    return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+    # Make plot grid
+    nrows = -(-(augment_factor + 1) // ncols)  # number of rows for plot grid
+    fig, axes = plt.subplots(nrows=nrows, ncols=ncols,
+                             sharex=True, sharey=True,
+                             figsize=figsize, squeeze=False)
+    fig.tight_layout(pad=5, w_pad=0.1, h_pad=1.5)
+    fig.suptitle(f"{9 + 1}-Fold Data Augmentation")
+    fig.supxlabel("Time (s)", fontsize=12)
+    fig.supylabel("Normalised Sound Intensity", fontsize=12)
+    for i in range(nrows):
+        for j in range(ncols):
+            if i * ncols + j <= augment_factor:
+                if i * ncols + j == 0:
+                    axes[i, j].plot(x_vals,
+                                    features[i * ncols + j],
+                                    alpha=0.8, color='#1f77b4')
+                else:
+                    axes[i, j].plot(x_vals,
+                                    features[i * ncols + j],
+                                    alpha=0.8, color='lightseagreen')
+            else:
+                break
 
-def serialize_array(array):
-    array = tf.io.serialize_tensor(tf.cast(array, tf.float32))
-    return array
+def generate_augmentation_visualisation():
+    data = load_dataset('Data/esc50_wav_tfr/raw/fold_1.tfrecords',
+                        reader=read_waveform_tfrecord)
+    feature = np.squeeze(next(iter(data.shuffle(1024)))[0].numpy())
+    del data
+    visualise_augmentation(feature, sgn, x_vals=np.linspace(0, 5, len(feature)))
 
-def parse_single_waveform(waveform, label):
-    # define the dictionary -- the structure -- of our single example
-    data = {
-        'waveform': _bytes_feature(serialize_array(waveform)),
-        'label': _int64_feature(label)
-    }
-    # create an Example, wrapping the single features
-    out = tf.train.Example(features=tf.train.Features(feature=data))
-    return out
 
-def write_waveforms_to_tfr_short(waveforms, labels, filename):
-    """Writes images to a TFRecord"""
-    filename= filename+".tfrecords"
-    writer = tf.io.TFRecordWriter(filename)
-    count = 0
+if __name__ == '__main__':
+    for i in range(1, 6):
+        data_augmentor(fpath_in=f'Data/esc50_wav_tfr/raw/fold_{i}.tfrecords',
+                       fpath_out=f'Data/esc50_wav_tfr/aug/fold_{i}.tfrecords',
+                       augmentor=sgn,
+                       augment_factor=1,
+                       output_shape=[1, 220500, 1])
+        generate_augmentation_visualisation()
 
-    for index in range(len(waveforms)):
-
-        # get the data we to write
-        current_waveform = waveforms[index]
-        current_label = labels[index]
-
-        out = parse_single_waveform(waveform=current_waveform,
-                                    label=current_label)
-        writer.write(out.SerializeToString())
-        count += 1
-
-    writer.close()
-    print(f"Wrote {count} waveforms to TFRecord")
-    return count
-
-data = load_dataset([f'Data/esc50_wav_tfr/raw/fold_{i}.tfrecords'
-                           for i in [1]],
-                          reader=read_waveform_tfrecord)
-data_aug = data_augmentor(data, sgn, 9, (1, 220500, 1))
