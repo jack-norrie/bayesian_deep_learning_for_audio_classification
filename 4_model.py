@@ -383,8 +383,9 @@ def evaluate_model(model, data):
         output.write(str(results))
 
 def train_acdnet():
-    data_train = get_dataset([f'Data/esc50_wav_tfr/raw/fold_{i}.tfrecords'
-                              for i in [1, 2, 3]],
+    data_train = get_dataset(list(set().union(*[
+        [f'Data/esc50_wav_tfr/aug/fold_{i}.tfrecords' for i in [1, 2, 3]]
+        for dir in ['raw', 'aug']])),
                              reader=read_waveform_tfrecord,
                              batch_size=64)
     data_val = get_dataset('Data/esc50_wav_tfr/raw/fold_4.tfrecords',
@@ -421,4 +422,3 @@ def train_acdnet():
 
 if __name__ == '__main__':
     train_acdnet()
-
