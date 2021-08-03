@@ -236,7 +236,7 @@ if __name__ == '__main__':
         data_augmentor(fpath_in=f'Data/esc50_wav_tfr/raw/fold_{i}.tfrecords',
                        fpath_out=f'Data/esc50_wav_tfr/aug/fold_{i}.tfrecords',
                        augmentor=sgn,
-                       augment_factor=9,
+                       augment_factor=19,
                        output_shape=[1, 220500, 1])
         generate_augmentation_visualisation()
 
