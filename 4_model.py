@@ -318,48 +318,49 @@ def gen_acdnet(input_shape=(1, 220500, 1), num_classes=50,
     return model
 
 def gen_acdnet_insp(input_shape=(1, 220500, 1), num_classes=50,
-               loss='categorical_crossentropy',
-               optimizer=SGD(learning_rate=0.1, nesterov=0.9),
-               metrics=['accuracy']):
+                    loss='categorical_crossentropy',
+                    optimizer=SGD(learning_rate=0.1, nesterov=0.9),
+                    metrics=['accuracy'],
+                    reg = 5e-4):
     model = Sequential([
         Input(shape=input_shape, dtype='float32', name='input'),
         BatchNormalization(),
         Conv2D(filters=16, kernel_size=(1, 9), strides=(1, 3),
                activation='relu',
-               kernel_regularizer=regularizers.l2(5e-4)),
+               kernel_regularizer=regularizers.l2(reg)),
         Conv2D(filters=32, kernel_size=(1, 5), strides=(1, 3),
                activation='relu',
-               kernel_regularizer=regularizers.l2(5e-4)),
+               kernel_regularizer=regularizers.l2(reg)),
         Conv2D(filters=64, kernel_size=(1, 3), strides=(1, 3),
                activation='relu',
-               kernel_regularizer=regularizers.l2(5e-4)),
+               kernel_regularizer=regularizers.l2(reg)),
         MaxPool2D(pool_size=(1, 100), strides=(1, 100)),
         BatchNormalization(),
         Permute((3, 2, 1)),
         Conv2D(filters=16, kernel_size=(3, 3), strides=(1, 1),
                activation='relu',
-               kernel_regularizer=regularizers.l2(5e-4)),
+               kernel_regularizer=regularizers.l2(reg)),
         Conv2D(filters=16, kernel_size=(3, 3), strides=(1, 1),
                activation='relu',
-               kernel_regularizer=regularizers.l2(5e-4)),
+               kernel_regularizer=regularizers.l2(reg)),
         MaxPool2D(pool_size=(2, 2), strides=(2, 2)),
         Conv2D(filters=32, kernel_size=(3, 3), strides=(1, 1),
                activation='relu',
-               kernel_regularizer=regularizers.l2(5e-4)),
+               kernel_regularizer=regularizers.l2(reg)),
         Conv2D(filters=32, kernel_size=(3, 3), strides=(1, 1),
                activation='relu',
-               kernel_regularizer=regularizers.l2(5e-4)),
+               kernel_regularizer=regularizers.l2(reg)),
         MaxPool2D(pool_size=(2, 2), strides=(2, 2)),
         BatchNormalization(),
         Dropout(0.2),
         Conv2D(filters=num_classes, kernel_size=(2, 2), strides=(2, 2),
                activation='relu',
-               kernel_regularizer=regularizers.l2(5e-4)),
+               kernel_regularizer=regularizers.l2(reg)),
         AvgPool2D(pool_size=(6, 8), strides=(6, 8)),
         Flatten(),
         BatchNormalization(),
         Dense(units=num_classes, activation='softmax',
-               kernel_regularizer=regularizers.l2(5e-4))
+               kernel_regularizer=regularizers.l2(reg))
     ])
     model.summary()
 
@@ -392,7 +393,7 @@ def train_acdnet():
                            reader=read_waveform_tfrecord,
                            batch_size=64)
 
-    model = gen_acdnet_insp()
+    model = gen_acdnet_insp(reg=1e-2)
 
     def scheduler(epoch, lr):
         if epoch < 10:
@@ -408,10 +409,6 @@ def train_acdnet():
         else:
             return 0.00001
 
-        if epoch in [400, 800, 1200, 1600]:
-            return lr * 0.1
-        else:
-            return lr
     train_model(model, data_train, data_val, epochs=2000,
                 callbacks=[tf.keras.callbacks.LearningRateScheduler(scheduler)])
 
