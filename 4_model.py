@@ -393,7 +393,7 @@ def train_acdnet():
                            reader=read_waveform_tfrecord,
                            batch_size=64)
 
-    model = gen_acdnet_insp(reg=1e-2)
+    model = gen_acdnet_insp(reg=1.0)
 
     def scheduler(epoch, lr):
         if epoch < 10:
