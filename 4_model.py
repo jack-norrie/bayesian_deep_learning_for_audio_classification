@@ -384,16 +384,13 @@ def evaluate_model(model, data):
 
 def train_acdnet():
     data_train = get_dataset(list(set().union(*[
-        [f'Data/esc50_wav_tfr/aug/fold_{i}.tfrecords' for i in [1, 2, 3]]
+        [f'Data/esc50_wav_tfr/{dir}/fold_{i}.tfrecords' for i in [1, 2, 3, 4]]
         for dir in ['raw', 'aug']])),
                              reader=read_waveform_tfrecord,
                              batch_size=64)
-    data_val = get_dataset('Data/esc50_wav_tfr/raw/fold_4.tfrecords',
+    data_val = get_dataset('Data/esc50_wav_tfr/raw/fold_5.tfrecords',
                            reader=read_waveform_tfrecord,
                            batch_size=64)
-    data_test = get_dataset('Data/esc50_wav_tfr/raw/fold_5.tfrecords',
-                            reader=read_waveform_tfrecord,
-                            batch_size=64)
 
     model = gen_acdnet_insp()
 
@@ -417,8 +414,6 @@ def train_acdnet():
             return lr
     train_model(model, data_train, data_val, epochs=2000,
                 callbacks=[tf.keras.callbacks.LearningRateScheduler(scheduler)])
-
-    evaluate_model(model, data_test)
 
 if __name__ == '__main__':
     train_acdnet()
