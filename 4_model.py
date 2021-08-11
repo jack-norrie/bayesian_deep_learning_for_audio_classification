@@ -371,6 +371,43 @@ def gen_acdnet_insp(input_shape=(1, 220500, 1), num_classes=50,
     return model
 
 
+def gen_simp(input_shape=(1, 220500, 1), num_classes=50,
+                    loss='categorical_crossentropy',
+                    optimizer=SGD(learning_rate=0.1, nesterov=0.9),
+                    metrics=['accuracy'],
+                    reg = 5e-4):
+    model = Sequential([
+        Input(shape=input_shape, dtype='float32', name='input'),
+        BatchNormalization(),
+        Conv2D(filters=16, kernel_size=(1, 11), strides=(1, 9),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg)),
+        Conv2D(filters=16, kernel_size=(1, 9), strides=(1, 7),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg)),
+        MaxPool2D(pool_size=(1, 10), strides=(1, 10)),
+        BatchNormalization(),
+        Conv2D(filters=32, kernel_size=(1, 7), strides=(1, 5),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg)),
+        Conv2D(filters=32, kernel_size=(1, 5), strides=(1, 3),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg)),
+        MaxPool2D(pool_size=(1, 10), strides=(1, 10)),
+        BatchNormalization(),
+        Flatten(),
+        Dense(units=num_classes, activation='softmax',
+              kernel_regularizer=regularizers.l2(reg))
+    ])
+
+    model.summary()
+
+    model.compile(optimizer=optimizer,
+                  loss=loss,
+                  metrics=metrics)
+
+    return model
+
 def train_model(model, data, validation_data=None, epochs=100,
                 callbacks=None):
     model.fit(data,
@@ -412,5 +449,23 @@ def train_acdnet():
     train_model(model, data_train, data_val, epochs=2000,
                 callbacks=[tf.keras.callbacks.LearningRateScheduler(scheduler)])
 
+def train_simp_acdnet():
+    data_train = get_dataset(list(set().union(*[
+        [f'Data/esc50_wav_tfr/{dir}/fold_{i}.tfrecords' for i in [1, 2, 3, 4]]
+        for dir in ['raw', 'aug']])),
+                             reader=read_waveform_tfrecord,
+                             batch_size=64)
+    data_val = get_dataset('Data/esc50_wav_tfr/raw/fold_5.tfrecords',
+                           reader=read_waveform_tfrecord,
+                           batch_size=64)
+
+    model = gen_simp(reg=1e-4)
+
+    def scheduler(epoch, lr):
+        return 0.01
+
+    train_model(model, data_train, data_val, epochs=2000,
+                callbacks=[tf.keras.callbacks.LearningRateScheduler(scheduler)])
+
 if __name__ == '__main__':
-    train_acdnet()
+    train_simp_acdnet()
