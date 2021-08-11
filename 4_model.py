@@ -464,7 +464,7 @@ def train_simp_acdnet():
     def scheduler(epoch, lr):
         return 0.01
 
-    train_model(model, data_train, data_val, epochs=2000,
+    train_model(model, data_train, data_val, epochs=500,
                 callbacks=[tf.keras.callbacks.LearningRateScheduler(scheduler)])
 
 if __name__ == '__main__':
