@@ -468,4 +468,8 @@ def train_simp_acdnet():
                 callbacks=[tf.keras.callbacks.LearningRateScheduler(scheduler)])
 
 if __name__ == '__main__':
+    # Set GPU to use:
+    import os
+    os.environ["CUDA_VISIBLE_DEVICES"] = "4"
+
     train_simp_acdnet()
