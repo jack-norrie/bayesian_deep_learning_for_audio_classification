@@ -470,6 +470,6 @@ def train_simp_acdnet():
 if __name__ == '__main__':
     # Set GPU to use:
     import os
-    os.environ["CUDA_VISIBLE_DEVICES"] = "3,4,5"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
     train_simp_acdnet()
