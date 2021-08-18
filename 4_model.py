@@ -373,29 +373,38 @@ def gen_acdnet_insp(input_shape=(1, 220500, 1), num_classes=50,
 
 def gen_simp(input_shape=(1, 220500, 1), num_classes=50,
                     loss='categorical_crossentropy',
-                    optimizer=SGD(learning_rate=0.1, nesterov=0.9),
+                    optimizer=Adam(),
                     metrics=['accuracy'],
-                    reg = 5e-4):
+                    reg = 1e-3):
     model = Sequential([
         Input(shape=input_shape, dtype='float32', name='input'),
         BatchNormalization(),
-        Conv2D(filters=16, kernel_size=(1, 11), strides=(1, 9),
+        Conv2D(filters=16, kernel_size=(1, 21), strides=(1, 5),
                activation='relu',
                kernel_regularizer=regularizers.l2(reg)),
-        Conv2D(filters=16, kernel_size=(1, 9), strides=(1, 7),
+        Conv2D(filters=16, kernel_size=(1, 21), strides=(1, 5),
                activation='relu',
                kernel_regularizer=regularizers.l2(reg)),
-        MaxPool2D(pool_size=(1, 10), strides=(1, 10)),
+        MaxPool2D(pool_size=(1, 9), strides=(1, 9)),
         BatchNormalization(),
-        Conv2D(filters=32, kernel_size=(1, 7), strides=(1, 5),
+        Conv2D(filters=32, kernel_size=(1, 7), strides=(1, 3),
                activation='relu',
                kernel_regularizer=regularizers.l2(reg)),
-        Conv2D(filters=32, kernel_size=(1, 5), strides=(1, 3),
+        Conv2D(filters=32, kernel_size=(1, 7), strides=(1, 3),
                activation='relu',
                kernel_regularizer=regularizers.l2(reg)),
-        MaxPool2D(pool_size=(1, 10), strides=(1, 10)),
+        MaxPool2D(pool_size=(1, 7), strides=(1, 7)),
+        BatchNormalization(),
+        Conv2D(filters=64, kernel_size=(1, 3), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg)),
+        Conv2D(filters=64, kernel_size=(1, 3), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg)),
+        MaxPool2D(pool_size=(1, 5), strides=(1, 5)),
         BatchNormalization(),
         Flatten(),
+        Dropout(0.2),
         Dense(units=num_classes, activation='softmax',
               kernel_regularizer=regularizers.l2(reg))
     ])
@@ -449,7 +458,7 @@ def train_acdnet():
     train_model(model, data_train, data_val, epochs=2000,
                 callbacks=[tf.keras.callbacks.LearningRateScheduler(scheduler)])
 
-def train_simp_acdnet():
+def train_simp():
     data_train = get_dataset(list(set().union(*[
         [f'Data/esc50_wav_tfr/{dir}/fold_{i}.tfrecords' for i in [1, 2, 3, 4]]
         for dir in ['raw', 'aug']])),
@@ -472,4 +481,4 @@ if __name__ == '__main__':
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
-    train_simp_acdnet()
+    train_simp()
