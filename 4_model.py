@@ -481,4 +481,4 @@ if __name__ == '__main__':
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
-    train_simp()
+    train_acdnet()
