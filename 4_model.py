@@ -468,7 +468,7 @@ def train_simp():
                            reader=read_waveform_tfrecord,
                            batch_size=64)
 
-    model = gen_simp(reg=1e-4)
+    model = gen_simp()
 
     def scheduler(epoch, lr):
         return 0.01
