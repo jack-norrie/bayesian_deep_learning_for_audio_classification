@@ -375,7 +375,7 @@ def gen_simp(input_shape=(1, 220500, 1), num_classes=50,
                     loss='categorical_crossentropy',
                     optimizer=Adam(),
                     metrics=['accuracy'],
-                    reg = 1e-3):
+                    reg = 1e-2):
     model = Sequential([
         Input(shape=input_shape, dtype='float32', name='input'),
         BatchNormalization(),
@@ -404,7 +404,7 @@ def gen_simp(input_shape=(1, 220500, 1), num_classes=50,
         MaxPool2D(pool_size=(1, 5), strides=(1, 5)),
         BatchNormalization(),
         Flatten(),
-        Dropout(0.2),
+        Dropout(0.5),
         Dense(units=num_classes, activation='softmax',
               kernel_regularizer=regularizers.l2(reg))
     ])
@@ -479,5 +479,5 @@ def train_simp():
 if __name__ == '__main__':
     # Set GPU to use:
     import os
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "7"
     train_simp()
