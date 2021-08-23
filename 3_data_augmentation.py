@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import librosa
+from scipy.io import wavfile
 from functools import partial
 import matplotlib.pyplot as plt
 
@@ -112,13 +113,13 @@ def semitone_shift_range(signal, sr=44100, low=-2, high=2):
                                                  semitone_shift_steps)
     return signal_shifted
 
-def volume_gain_range(signal, low=-3, high=3):
+def volume_gain_range(signal, low=-5, high=5):
     """Shifts volume by random number of decibels"""
     decibel_shift = np.random.uniform(low, high)
     signal_volume_shifted = signal * np.exp(0.115129 * decibel_shift)
     return signal_volume_shifted
 
-def snr_noiser(signal, low=0, high=10):
+def snr_noiser(signal, low=9.5, high=17):
     """Adds noise at a randomly generated signal to noise ratio"""
     # Generate SNR in db and find associated rms of noise
     snr_db = np.random.uniform(low, high)
@@ -131,7 +132,7 @@ def snr_noiser(signal, low=0, high=10):
     noisy_signal = signal + noise
     return noisy_signal
 
-def time_shift_range(signal, sr=44100, low=-0.1, high=0.1):
+def time_shift_range(signal, sr=44100, low=-0.25, high=0.25):
     """Shifts the signal either forward or backwards"""
     time_shift = np.random.uniform(low, high)
     sample_shift = int(time_shift * sr)
@@ -230,6 +231,17 @@ def generate_augmentation_visualisation():
     del data
     visualise_augmentation(feature, sgn, x_vals=np.linspace(0, 5, len(feature)))
 
+def generate_augmentation_examples(augmentor, fpath,
+                                   sr = 44100, num_examples=5, augment_factor=9):
+    data = load_dataset('Data/esc50_wav_tfr/raw/fold_1.tfrecords',
+                        reader=read_waveform_tfrecord)
+    data_sub = data.shuffle(1024).take(num_examples); del data
+    for i, waveform in enumerate(data_sub):
+        waveform = np.squeeze(waveform[0].numpy())
+        wavfile.write(fpath + f'/{i+1}_1.wav', 44100, waveform)
+        for j in range(2, augment_factor + 2):
+            wavfile.write(fpath + f'/{i+1}_{j}.wav', 44100, augmentor(waveform))
+
 
 if __name__ == '__main__':
     for i in range(1, 6):
@@ -238,5 +250,11 @@ if __name__ == '__main__':
                        augmentor=sgn,
                        augment_factor=19,
                        output_shape=[1, 220500, 1])
+        """
         generate_augmentation_visualisation()
+        generate_augmentation_examples(augmentor)
+        """
+        generate_augmentation_examples(augmentor=sgn,
+                                       fpath='Figures/aug_clips/sgn')
+
 
