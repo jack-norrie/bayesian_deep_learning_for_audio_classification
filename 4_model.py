@@ -456,7 +456,7 @@ def train_acdnet():
         else:
             return 0.00001
 
-    train_model(model, data_train, data_val, epochs=500)
+    train_model(model, data_train, data_val, epochs=1000)
 
 def train_simp():
     data_train = get_dataset(list(set().union(*[
