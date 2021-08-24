@@ -404,7 +404,7 @@ def gen_simp(input_shape=(1, 220500, 1), num_classes=50,
         MaxPool2D(pool_size=(1, 5), strides=(1, 5)),
         BatchNormalization(),
         Flatten(),
-        Dropout(0.5),
+        Dropout(0.2),
         Dense(units=num_classes, activation='softmax',
               kernel_regularizer=regularizers.l2(reg))
     ])
@@ -417,7 +417,7 @@ def gen_simp(input_shape=(1, 220500, 1), num_classes=50,
 
     return model
 
-def train_model(model, data, validation_data=None, epochs=100,
+def train_model(model, data, validation_data=None, epochs=1000,
                 callbacks=None):
     model.fit(data,
               validation_data=validation_data,
@@ -439,7 +439,8 @@ def train_acdnet():
                            reader=read_waveform_tfrecord,
                            batch_size=64)
 
-    model = gen_acdnet_insp(reg=5e-2, optimizer=Adam())
+    model = gen_acdnet_insp(reg=5e-2, optimizer=SGD(learning_rate=0.1,
+                                                    momentum=0.9))
 
     def scheduler(epoch, lr):
         if epoch < 10:
