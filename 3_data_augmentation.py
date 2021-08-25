@@ -246,6 +246,10 @@ def generate_augmentation_examples(augmentor, fpath,
 
 
 if __name__ == '__main__':
+    # Set GPU to use:
+    import os
+    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+
     for i in range(1, 6):
         """
         # Augment pure waveforms
