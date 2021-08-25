@@ -524,8 +524,7 @@ def train_acdnet():
                                read_waveform_tfrecord(example, [1, 33333, 1]),
                            batch_size=64)
 
-    model = gen_acdnet_insp_2(reg=5e-2, optimizer=SGD(learning_rate=0.01,
-                                                      momentum=0.9))
+    model = gen_acdnet_insp_2(reg=5e-4, optimizer=Adam())
 
     def scheduler(epoch, lr):
         if epoch < 10:
@@ -541,9 +540,7 @@ def train_acdnet():
         else:
             return 0.00001
 
-    train_model(model, data_train, data_val, epochs=2000,
-                callbacks=[tf.keras.callbacks.LearningRateScheduler(scheduler,
-                                                                    verbose=1)])
+    train_model(model, data_train, data_val, epochs=1000)
 
 def train_simp():
     data_train = get_dataset(list(set().union(*[
