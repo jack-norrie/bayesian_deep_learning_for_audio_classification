@@ -144,17 +144,17 @@ def time_shift_range(signal, sr=44100, low=-0.25, high=0.25):
                                               np.zeros(-sample_shift)])
     return  signal_time_shifted
 
-def sgn(waveform):
+def sgn(waveform, sr=44100):
     """Performs standard signal augmentation."""
     aug_waveform = waveform
     if np.random.choice([0, 1]):
         aug_waveform = speedup_factor_range(aug_waveform)
     if np.random.choice([0, 1]):
-        aug_waveform = semitone_shift_range(aug_waveform)
+        aug_waveform = semitone_shift_range(aug_waveform, sr)
     if np.random.choice([0, 1]):
         aug_waveform = volume_gain_range(aug_waveform)
     if np.random.choice([0, 1]):
-        aug_waveform = time_shift_range(aug_waveform)
+        aug_waveform = time_shift_range(aug_waveform, sr)
     if np.random.choice([0, 1]):
         aug_waveform = snr_noiser(aug_waveform)
     return aug_waveform
@@ -245,11 +245,22 @@ def generate_augmentation_examples(augmentor, fpath,
 
 if __name__ == '__main__':
     for i in range(1, 6):
+        """
+        # Augment pure waveforms
         data_augmentor(fpath_in=f'Data/esc50_wav_tfr/raw/fold_{i}.tfrecords',
                        fpath_out=f'Data/esc50_wav_tfr/aug/fold_{i}.tfrecords',
                        augmentor=sgn,
                        augment_factor=29,
                        output_shape=[1, 220500, 1])
+        """
+
+        # Augment ACDNet waveforms
+        data_augmentor(fpath_in=f'Data/esc50_wav_acdnet_tfr/raw/fold_{i}.tfrecords',
+                       fpath_out=f'Data/esc50_wav_acdnet_tfr/aug/fold_{i}.tfrecords',
+                       augmentor=lambda wav: sgn(wav, sr=20000),
+                       augment_factor=29,
+                       output_shape=[1, 220500, 1])
+
         """
         generate_augmentation_visualisation()
         generate_augmentation_examples(augmentor=sgn,
