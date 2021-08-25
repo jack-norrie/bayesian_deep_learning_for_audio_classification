@@ -439,7 +439,7 @@ def train_acdnet():
                            reader=read_waveform_tfrecord,
                            batch_size=64)
 
-    model = gen_acdnet_insp(reg=5e-2, optimizer=SGD(learning_rate=0.1,
+    model = gen_acdnet_insp(reg=5e-2, optimizer=SGD(learning_rate=0.01,
                                                     momentum=0.9))
 
     def scheduler(epoch, lr):
