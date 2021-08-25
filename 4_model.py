@@ -10,7 +10,7 @@ tfpl = tfp.layers
 from functools import partial
 efn = tf.keras.applications.efficientnet
 
-def read_waveform_tfrecord(example):
+def read_waveform_tfrecord(example, shape=[1, 220500, 1]):
     tfrecord_format = {
         'waveform': tf.io.FixedLenFeature([], tf.string),
         'label': tf.io.FixedLenFeature([], tf.int64)
@@ -24,7 +24,7 @@ def read_waveform_tfrecord(example):
 
     # Process content
     waveform = tf.io.parse_tensor(waveform, out_type=tf.float32)
-    waveform = tf.reshape(waveform, shape=[1, 220500, 1])
+    waveform = tf.reshape(waveform, shape=shape)
 
     return waveform, label
 
@@ -52,7 +52,8 @@ def read_spectrogram_tfrecord(example):
 
     return image, label
 
-def load_dataset(filenames, reader=read_waveform_tfrecord):
+def load_dataset(filenames, reader=lambda example:\
+        read_waveform_tfrecord(example)):
     ignore_order = tf.data.Options()
     ignore_order.experimental_deterministic = False  # disable order, increase speed
     dataset = tf.data.TFRecordDataset(
@@ -68,7 +69,8 @@ def load_dataset(filenames, reader=read_waveform_tfrecord):
     # returns a dataset of (image, label)
     return dataset
 
-def get_dataset(filenames, reader=read_waveform_tfrecord, batch_size = 16, classes=50):
+def get_dataset(filenames, reader=lambda example:\
+        read_waveform_tfrecord(example), batch_size = 16, classes=50):
     dataset = load_dataset(filenames, reader=reader)
     dataset = dataset.map(lambda x, y: (x, tf.one_hot(y, classes))) #OHE
     dataset = dataset.shuffle(2048)
@@ -514,10 +516,12 @@ def train_acdnet():
     data_train = get_dataset(list(set().union(*[
         [f'Data/esc50_wav_acdnet_tfr/{dir}/fold_{i}.tfrecords' for i in [1, 2, 3, 4]]
         for dir in ['raw', 'aug']])),
-                             reader=read_waveform_tfrecord,
+                             reader=lambda example:\
+        read_waveform_tfrecord(example, [1, 33333, 1]),
                              batch_size=64)
     data_val = get_dataset('Data/esc50_wav_acdnet_tfr/raw/fold_5.tfrecords',
-                           reader=read_waveform_tfrecord,
+                           reader=lambda example: \
+                               read_waveform_tfrecord(example, [1, 33333, 1]),
                            batch_size=64)
 
     model = gen_acdnet_insp_2(reg=5e-2, optimizer=SGD(learning_rate=0.01,
