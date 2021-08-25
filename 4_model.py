@@ -370,6 +370,87 @@ def gen_acdnet_insp(input_shape=(1, 220500, 1), num_classes=50,
 
     return model
 
+def gen_acdnet_insp_2(input_shape=(1, 33333, 1), num_classes=50,
+                      loss='categorical_crossentropy',
+                      optimizer=SGD(learning_rate=0.1, nesterov=0.9),
+                      metrics=['accuracy'],
+                      reg = 5e-4):
+    model = Sequential([
+        Input(shape=input_shape, dtype='float32', name='input'),
+        BatchNormalization(),
+        Conv2D(filters=8, kernel_size=(1, 9), strides=(1, 2),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg)),
+        Conv2D(filters=64, kernel_size=(1, 5), strides=(1, 2),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg)),
+        MaxPool2D(pool_size=(1, 49), strides=(1, 49)),
+        BatchNormalization(),
+        Permute((3, 2, 1)),
+        Conv2D(filters=32, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg),
+               padding='same'),
+        MaxPool2D(pool_size=(2, 2), strides=(2, 2), padding='same'),
+        BatchNormalization(),
+        Conv2D(filters=64, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg),
+               padding='same'),
+        Conv2D(filters=64, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg),
+               padding='same'),
+        MaxPool2D(pool_size=(2, 2), strides=(2, 2), padding='same'),
+        BatchNormalization(),
+        Conv2D(filters=128, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg),
+               padding='same'),
+        Conv2D(filters=128, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg),
+               padding='same'),
+        MaxPool2D(pool_size=(2, 2), strides=(2, 2), padding='same'),
+        BatchNormalization(),
+        Conv2D(filters=256, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg),
+               padding='same'),
+        Conv2D(filters=256, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg),
+               padding='same'),
+        MaxPool2D(pool_size=(2, 2), strides=(2, 2), padding='same'),
+        BatchNormalization(),
+        Conv2D(filters=512, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg),
+               padding='same'),
+        Conv2D(filters=512, kernel_size=(3, 3), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg),
+               padding='same'),
+        MaxPool2D(pool_size=(2, 2), strides=(2, 2), padding='same'),
+        BatchNormalization(),
+        Dropout(0.2),
+        Conv2D(filters=num_classes, kernel_size=(1, 1), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg),
+               padding='same'),
+        MaxPool2D(pool_size=(2, 6), strides=(2, 6), padding='same'),
+        Flatten(),
+        BatchNormalization(),
+        Dense(units=num_classes, activation='softmax',
+               kernel_regularizer=regularizers.l2(reg))
+    ])
+    model.summary()
+
+    model.compile(optimizer=optimizer,
+                  loss=loss,
+                  metrics=metrics)
+
+    return model
 
 def gen_simp(input_shape=(1, 220500, 1), num_classes=50,
                     loss='categorical_crossentropy',
@@ -431,16 +512,16 @@ def evaluate_model(model, data):
 
 def train_acdnet():
     data_train = get_dataset(list(set().union(*[
-        [f'Data/esc50_wav_tfr/{dir}/fold_{i}.tfrecords' for i in [1, 2, 3, 4]]
+        [f'Data/esc50_wav_acdnet_tfr/{dir}/fold_{i}.tfrecords' for i in [1, 2, 3, 4]]
         for dir in ['raw', 'aug']])),
                              reader=read_waveform_tfrecord,
                              batch_size=64)
-    data_val = get_dataset('Data/esc50_wav_tfr/raw/fold_5.tfrecords',
+    data_val = get_dataset('Data/esc50_wav_acdnet_tfr/raw/fold_5.tfrecords',
                            reader=read_waveform_tfrecord,
                            batch_size=64)
 
-    model = gen_acdnet_insp(reg=5e-2, optimizer=SGD(learning_rate=0.01,
-                                                    momentum=0.9))
+    model = gen_acdnet_insp_2(reg=5e-2, optimizer=SGD(learning_rate=0.01,
+                                                      momentum=0.9))
 
     def scheduler(epoch, lr):
         if epoch < 10:
@@ -456,7 +537,9 @@ def train_acdnet():
         else:
             return 0.00001
 
-    train_model(model, data_train, data_val, epochs=1000)
+    train_model(model, data_train, data_val, epochs=2000,
+                callbacks=[tf.keras.callbacks.LearningRateScheduler(scheduler,
+                                                                    verbose=1)])
 
 def train_simp():
     data_train = get_dataset(list(set().union(*[
