@@ -5,7 +5,7 @@ from scipy.io import wavfile
 from functools import partial
 import matplotlib.pyplot as plt
 
-def read_waveform_tfrecord(example):
+def read_waveform_tfrecord(example, output_shape):
     tfrecord_format = {
         'waveform': tf.io.FixedLenFeature([], tf.string),
         'label': tf.io.FixedLenFeature([], tf.int64)
@@ -19,7 +19,7 @@ def read_waveform_tfrecord(example):
 
     # Process content
     waveform = tf.io.parse_tensor(waveform, out_type=tf.float32)
-    waveform = tf.reshape(waveform, shape=[1, 220500, 1])
+    waveform = tf.reshape(waveform, shape=output_shape)
 
     return waveform, label
 
@@ -171,7 +171,9 @@ def data_augmentor(fpath_in, fpath_out,
         augment_factor (int): Number of augmented samples to generate per sample.
         output_shape (array): Shape to reshape output to
     """
-    data = load_dataset(fpath_in, reader=read_waveform_tfrecord)
+    data = load_dataset(fpath_in,
+                        reader=lambda example:\
+                            read_waveform_tfrecord(example,output_shape))
     augmented_features = []
     augmented_labels = []
     for sample in data:
@@ -226,7 +228,7 @@ def visualise_augmentation(feature, augmentor, augment_factor=9,
 
 def generate_augmentation_visualisation():
     data = load_dataset('Data/esc50_wav_tfr/raw/fold_1.tfrecords',
-                        reader=read_waveform_tfrecord)
+                        reader=lambda example:read_waveform_tfrecord(example))
     feature = np.squeeze(next(iter(data.shuffle(1024)))[0].numpy())
     del data
     visualise_augmentation(feature, sgn, x_vals=np.linspace(0, 5, len(feature)))
@@ -234,7 +236,7 @@ def generate_augmentation_visualisation():
 def generate_augmentation_examples(augmentor, fpath,
                                    sr = 44100, num_examples=5, augment_factor=9):
     data = load_dataset('Data/esc50_wav_tfr/raw/fold_1.tfrecords',
-                        reader=read_waveform_tfrecord)
+                        reader=lambda example:read_waveform_tfrecord(example))
     data_sub = data.shuffle(1024).take(num_examples); del data
     for i, waveform in enumerate(data_sub):
         waveform = np.squeeze(waveform[0].numpy())
