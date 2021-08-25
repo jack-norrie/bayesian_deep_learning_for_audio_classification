@@ -259,7 +259,7 @@ if __name__ == '__main__':
                        fpath_out=f'Data/esc50_wav_acdnet_tfr/aug/fold_{i}.tfrecords',
                        augmentor=lambda wav: sgn(wav, sr=20000),
                        augment_factor=29,
-                       output_shape=[1, 220500, 1])
+                       output_shape=[1, 33333, 1])
 
         """
         generate_augmentation_visualisation()
