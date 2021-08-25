@@ -93,6 +93,27 @@ def wav_extractor(in_fpath='Data/esc50_tabulated',
                                         labels,
                                         f'{out_fpath}_{fold}')
 
+def wav_downsampled_extractor(in_fpath='Data/esc50_tabulated',
+                              out_fpath='Data/esc50_wav_acdnet_tfr/raw/fold',
+                              num_folds=5,
+                              in_sr=44100,
+                              out_sr=20000,
+                              trunc_factor = 3):
+    """Extracts and writes downsampled and truncated waveforms into TFRecords"""
+    for fold in range(1, num_folds+1):
+        waveforms, labels = \
+            fold_wav_extractor(fold, in_fpath)
+
+        # Down-sample waveforms to 20kHz
+        waveforms = np.array([librosa.resample(wav, in_sr, out_sr)
+                              for wav in waveforms])
+        # Truncate
+        waveforms = np.array([wav[:len(wav)//trunc_factor] for wav in waveforms])
+
+        write_waveforms_to_tfr_short(waveforms,
+                                     labels,
+                                     f'{out_fpath}_{fold}')
+
 def parse_single_image(image, label):
     # define the dictionary -- the structure -- of our single example
     data = {
@@ -180,8 +201,6 @@ def multi_mel_extractor(in_fpath='Data/esc50_tabulated',
 
 if __name__ == '__main__':
     wav_extractor()
+    wav_downsampled_extractor()
     mel_extractor()
     multi_mel_extractor()
-
-
-

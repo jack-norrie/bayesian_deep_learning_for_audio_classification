@@ -2,7 +2,7 @@ import numpy as np
 import librosa
 from os import listdir
 
-def load_wavs(fpath, sample_rate=44100):
+def load_wavs(fpath, sr=44100):
     """Loads .wav files from a specified filepath.
 
     The specified filepath should contain only .wav files.
@@ -19,7 +19,7 @@ def load_wavs(fpath, sample_rate=44100):
     for file_name in file_names:
         try:
             wav_dict[file_name] = librosa.load(fpath + '/' + file_name,
-                                               sr=sample_rate)
+                                               sr=sr)
         except:
             print(f"Exception occured for {fpath + '/' + file_name}")
     return wav_dict
@@ -115,7 +115,7 @@ def folds_to_csv(folder_path, wavs, wavs_labs, wavs_folds, wavs_fname):
                 wavs_fname[fold_idx])
 
 
-def esc_wav_processor(input_fpath, output_fpath, lab_pos, fold_pos):
+def esc_wav_processor(input_fpath, output_fpath, lab_pos, fold_pos, sr=44100):
     """ Chains the previous functions to form a pre-processor.
 
     Args:
@@ -126,7 +126,7 @@ def esc_wav_processor(input_fpath, output_fpath, lab_pos, fold_pos):
 
     """
     # Import .wav files as dictionary
-    wav_dict = load_wavs(input_fpath)
+    wav_dict = load_wavs(input_fpath, sr)
 
     # Check dictionary of .wavs can be tabulated:
     if not check_compatible(wav_dict):
