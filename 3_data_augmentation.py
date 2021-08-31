@@ -24,7 +24,8 @@ def read_waveform_tfrecord(example, output_shape):
 
     return waveform, label
 
-def load_dataset(filenames, reader=read_waveform_tfrecord):
+def load_dataset(filenames,
+                 reader=lambda example: read_waveform_tfrecord(example, [1, 220500, 1])):
     ignore_order = tf.data.Options()
     ignore_order.experimental_deterministic = False  # disable order, increase speed
     dataset = tf.data.TFRecordDataset(
