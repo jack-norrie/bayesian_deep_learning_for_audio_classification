@@ -5,6 +5,7 @@ from scipy.io import wavfile
 from functools import partial
 import matplotlib.pyplot as plt
 
+
 def read_waveform_tfrecord(example, output_shape):
     tfrecord_format = {
         'waveform': tf.io.FixedLenFeature([], tf.string),
@@ -86,6 +87,80 @@ def write_waveforms_to_tfr_short(waveforms, labels, filename):
     writer.close()
     print(f"Wrote {count} waveforms to TFRecord")
     return count
+
+def parse_single_windowed_image(image, label, id):
+    # define the dictionary -- the structure -- of our single example
+    data = {
+        'id': _float_feature(id),
+        'height': _int64_feature(image.shape[0]),
+        'width': _int64_feature(image.shape[1]),
+        'depth': _int64_feature(image.shape[2]),
+        'image': _bytes_feature(serialize_array(image)),
+        'label': _int64_feature(label)
+    }
+    # create an Example, wrapping the single features
+    out = tf.train.Example(features=tf.train.Features(feature=data))
+
+    return out
+
+
+def windowed_mel_delta_extractor(fpath_in, fpath_out, sr=44100):
+    """Extracts and windows mel spectrograms from a tfrecords"""
+    for fold in range(1, 6):
+        data = load_dataset(fpath_in + f"fold_{fold}.tfrecords")
+        write_count = 0
+        writer = tf.io.TFRecordWriter(fpath_out + f"fold_{fold}.tfrecords")
+        for example in data:
+            # Reshape
+            waveform = example[0].numpy().reshape(-1)
+            label = example[1]
+
+            # Get log-Mel-spectrogram
+            s = librosa.feature.melspectrogram(y=waveform,
+                                               sr=sr,
+                                               win_length=1024,
+                                               n_mels=128)
+            s_log = librosa.power_to_db(s, ref=np.max)
+
+            # Get first derivative of log-Mel-spectrogram
+            s_log_deltas = librosa.feature.delta(s_log)
+
+            # Normalise log-Mel-spectrogram and deltas
+            s_log_norm = librosa.util.normalize(s_log)
+            s_log_deltas_norm = librosa.util.normalize(s_log_deltas)
+
+            # Frame spectrograms
+            s_log_norm_framed = librosa.util.frame(s_log_norm,
+                                                   50, 25).\
+                transpose((2, 0, 1))
+            s_log_deltas_norm_framed = librosa.util.frame(s_log_deltas_norm,
+                                                          50, 25).\
+                transpose((2, 0, 1))
+
+            # Check for silent frames
+            n_frames = len(s_log_norm_framed)
+            filter = [True] * n_frames
+            for i in range (n_frames):
+                silent_pixels = np.equal(s_log_norm_framed[i], -1)
+                if silent_pixels.all():
+                    filter[i] = False
+            s_log_norm_framed = s_log_norm_framed[filter]
+            s_log_deltas_norm_framed = s_log_deltas_norm_framed[filter]
+
+            # Stack spectrograms and deltas
+            framed_features = np.stack([s_log_norm_framed,
+                                        s_log_deltas_norm_framed],
+                                       axis=-1)
+
+            # Save spectrograms and generate a unique id for testing purposes
+            id = np.random.uniform(0, 1)
+            for frame in framed_features:
+                out = parse_single_windowed_image(image=frame,
+                                                  label=label,
+                                                  id=id)
+                writer.write(out.SerializeToString())
+                write_count += 1
+        print(f'Finished fold {fold}, wrote {write_count} examples to disk.')
 
 def trim_pad(signal, desired_length):
     """Trims or zero-pads a signal to a specified length"""
@@ -249,7 +324,8 @@ if __name__ == '__main__':
     # Set GPU to use:
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = "2"
-
+    windowed_mel_delta_extractor('Data/esc50_wav_tfr/aug/',
+                                 'Data/esc50_mel_wind_tfr/aug/')
     for i in range(1, 6):
         """
         # Augment pure waveforms
@@ -258,7 +334,7 @@ if __name__ == '__main__':
                        augmentor=sgn,
                        augment_factor=29,
                        output_shape=[1, 220500, 1])
-        """
+        
 
         # Augment ACDNet waveforms
         data_augmentor(fpath_in=f'Data/esc50_wav_acdnet_tfr/raw/fold_{i}.tfrecords',
@@ -267,7 +343,7 @@ if __name__ == '__main__':
                        augment_factor=29,
                        output_shape=[1, 33333, 1])
 
-        """
+        
         generate_augmentation_visualisation()
         generate_augmentation_examples(augmentor=sgn,
                                        fpath='Figures/aug_clips/sgn')
