@@ -207,7 +207,7 @@ def mel_extractor(in_fpath='Data/esc50_tabulated',
 def parse_single_windowed_image(image, label, id):
     # define the dictionary -- the structure -- of our single example
     data = {
-        'id': _int64_feature(id),
+        'id': _float_feature(id),
         'height': _int64_feature(image.shape[0]),
         'width': _int64_feature(image.shape[1]),
         'depth': _int64_feature(image.shape[2]),
