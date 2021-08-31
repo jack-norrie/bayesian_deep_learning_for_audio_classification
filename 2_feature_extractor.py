@@ -225,6 +225,7 @@ def windowed_mel_delta_extractor(fpath_in, fpath_out, sr=44100):
     for fold in range(1, 6):
         data = load_dataset(fpath_in + f"fold_{fold}.tfrecords")
         write_count = 0
+        writer = tf.io.TFRecordWriter(fpath_out + f"fold_{fold}.tfrecords")
         for example in data:
             # Reshape
             waveform = example[0].numpy().reshape(-1)
@@ -269,8 +270,6 @@ def windowed_mel_delta_extractor(fpath_in, fpath_out, sr=44100):
 
             # Save spectrograms and generate a unique id for testing purposes
             id = np.random.uniform(0, 1)
-            fpath_out = fpath_out + f"fold_{fold}.tfrecords"
-            writer = tf.io.TFRecordWriter(fpath_out)
             for frame in framed_features:
                 out = parse_single_windowed_image(image=frame,
                                                   label=label,
