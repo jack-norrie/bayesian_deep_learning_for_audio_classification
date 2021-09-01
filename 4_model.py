@@ -577,6 +577,7 @@ def gen_wind_mel_cnn(input_shape=(128, 50, 2), num_classes=50,
                      metrics=['accuracy'],
                      reg = 1e-3,
                      dor=0.5):
+
     model = Sequential([
         Input(shape=input_shape, dtype='float32'),
         Conv2D(filters=80, kernel_size=(120, 5), strides=(1, 1),
@@ -614,7 +615,8 @@ def train_wind_mel_cnn():
                            reader=read_windowed_spectrogram_tfrecord,
                            batch_size=1024)
 
-    model = gen_simp()
+    model = gen_wind_mel_cnn()
+    model(next(iter(data_train)))
 
     print(data_train)
     print(next(iter(data_train)))
