@@ -617,7 +617,57 @@ def train_wind_mel_cnn():
                            reader=read_windowed_spectrogram_tfrecord,
                            batch_size=1024)
 
-    model = gen_wind_mel_cnn(optimizer=Adam())
+    model = gen_wind_mel_cnn()
+
+    train_model(model, data_train, data_val, epochs=100)
+
+def gen_wind_mel_cnn_insp(input_shape=(128, 50, 2), num_classes=50,
+                     loss='categorical_crossentropy',
+                     optimizer=Adam(),
+                     metrics=['accuracy'],
+                     reg = 1e-3,
+                     dor=0.5):
+
+    model = Sequential([
+        Input(shape=input_shape, dtype='float32'),
+        Conv2D(filters=80, kernel_size=(120, 5), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg)),
+        MaxPool2D(pool_size=(9, 3), strides=(1, 3)),
+        Dropout(rate=dor),
+        Conv2D(filters=80, kernel_size=(1, 3), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg)),
+        MaxPool2D(pool_size=(1, 3), strides=(1, 3)),
+        Flatten(),
+        Dense(units=256, activation='relu',
+              kernel_regularizer=regularizers.l2(reg)),
+        Dropout(rate=dor),
+        Dense(units=256, activation='relu',
+              kernel_regularizer=regularizers.l2(reg)),
+        Dropout(rate=dor),
+        Dense(units=num_classes, activation='softmax')
+    ])
+
+    model.summary()
+
+    model.compile(optimizer=optimizer,
+                  loss=loss,
+                  metrics=metrics)
+
+    return model
+
+def train_wind_mel_cnn_insp():
+    data_train = get_dataset(list(set().union(*[
+        [f'Data/esc50_mel_wind_tfr/{dir}/fold_{i}.tfrecords' for i in [1, 2, 3, 4]]
+        for dir in ['raw', 'aug']])),
+                             reader=read_windowed_spectrogram_tfrecord,
+                             batch_size=1024)
+    data_val = get_dataset('Data/esc50_mel_wind_tfr/raw/fold_5.tfrecords',
+                           reader=read_windowed_spectrogram_tfrecord,
+                           batch_size=1024)
+
+    model = gen_wind_mel_cnn_insp(optimizer=Adam())
 
     train_model(model, data_train, data_val, epochs=100)
 
