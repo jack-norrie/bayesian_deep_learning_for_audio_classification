@@ -674,11 +674,10 @@ def gen_wind_mel_cnn_insp(input_shape=(128, 50, 2), num_classes=50,
 gen_wind_mel_cnn_insp()
 
 def train_wind_mel_cnn_insp():
-    data_train = get_dataset(list(set().union(*[
-        [f'Data/esc50_mel_wind_tfr/{dir}/fold_{i}.tfrecords' for i in [1, 2, 3, 4]]
-        for dir in ['raw', 'aug']])),
-                             reader=read_windowed_spectrogram_tfrecord,
-                             batch_size=1024)
+    data_train = get_dataset(
+        [f'Data/esc50_mel_wind_tfr/aug/fold_{i}.tfrecords' for i in [1, 2, 3, 4]],
+        reader=read_windowed_spectrogram_tfrecord,
+        batch_size=1024)
     data_val = get_dataset('Data/esc50_mel_wind_tfr/raw/fold_5.tfrecords',
                            reader=read_windowed_spectrogram_tfrecord,
                            batch_size=1024)
