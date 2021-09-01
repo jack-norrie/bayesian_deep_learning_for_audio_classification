@@ -616,7 +616,10 @@ def train_wind_mel_cnn():
 
     model = gen_simp()
 
-    train_model(model, data_train, data_val, epochs=100)
+    print(data_train)
+    print(next(iter(data_train)))
+
+    # train_model(model, data_train, data_val, epochs=100)
 
 if __name__ == '__main__':
     # Set GPU to use:
