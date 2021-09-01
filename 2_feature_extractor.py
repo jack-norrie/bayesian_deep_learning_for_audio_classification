@@ -247,10 +247,10 @@ def windowed_mel_delta_extractor(fpath_in, fpath_out, sr=44100):
 
             # Frame spectrograms
             s_log_norm_framed = librosa.util.frame(s_log_norm,
-                                                   50, 25).\
+                                                   128, 64).\
                 transpose((2, 0, 1))
             s_log_deltas_norm_framed = librosa.util.frame(s_log_deltas_norm,
-                                                          50, 25).\
+                                                          128, 64).\
                 transpose((2, 0, 1))
 
             # Check for silent frames
