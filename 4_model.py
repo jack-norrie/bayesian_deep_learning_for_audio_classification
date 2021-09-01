@@ -690,4 +690,4 @@ if __name__ == '__main__':
     # Set GPU to use:
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = "7"
-    train_acdnet()
+    train_simp()
