@@ -590,10 +590,10 @@ def gen_wind_mel_cnn(input_shape=(128, 50, 2), num_classes=50,
                kernel_regularizer=regularizers.l2(reg)),
         MaxPool2D(pool_size=(1, 3), strides=(1, 3)),
         Flatten(),
-        Dense(units=250, activation='relu',
+        Dense(units=5000, activation='relu',
               kernel_regularizer=regularizers.l2(reg)),
         Dropout(rate=dor),
-        Dense(units=250, activation='relu',
+        Dense(units=5000, activation='relu',
               kernel_regularizer=regularizers.l2(reg)),
         Dropout(rate=dor),
         Dense(units=num_classes, activation='softmax')
@@ -617,7 +617,7 @@ def train_wind_mel_cnn():
                            reader=read_windowed_spectrogram_tfrecord,
                            batch_size=1024)
 
-    model = gen_wind_mel_cnn(optimizer=RMSprop())
+    model = gen_wind_mel_cnn()
 
     train_model(model, data_train, data_val, epochs=100)
 
