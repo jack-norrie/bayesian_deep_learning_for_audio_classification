@@ -54,7 +54,7 @@ def read_spectrogram_tfrecord(example):
 
 def read_windowed_spectrogram_tfrecord(example):
     tfrecord_format = {
-        'id': tf.io.FixedLenFeature([], tf.float64),
+        'id': tf.io.FixedLenFeature([], tf.float32),
         'height': tf.io.FixedLenFeature([], tf.int64),
         'width': tf.io.FixedLenFeature([], tf.int64),
         'depth': tf.io.FixedLenFeature([], tf.int64),
