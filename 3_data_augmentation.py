@@ -325,18 +325,16 @@ if __name__ == '__main__':
     # Set GPU to use:
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+    # Augment pure waveforms
+    data_augmentor(fpath_in=f'Data/esc50_wav_tfr/raw/fold_{i}.tfrecords',
+                   fpath_out=f'Data/esc50_wav_tfr/aug/fold_{i}.tfrecords',
+                   augmentor=sgn,
+                   augment_factor=10,
+                   output_shape=[1, 220500, 1])
     windowed_mel_delta_extractor('Data/esc50_wav_tfr/aug/',
                                  'Data/esc50_mel_wind_tfr/aug/')
+    """
     for i in range(1, 6):
-        """
-        # Augment pure waveforms
-        data_augmentor(fpath_in=f'Data/esc50_wav_tfr/raw/fold_{i}.tfrecords',
-                       fpath_out=f'Data/esc50_wav_tfr/aug/fold_{i}.tfrecords',
-                       augmentor=sgn,
-                       augment_factor=29,
-                       output_shape=[1, 220500, 1])
-        
-
         # Augment ACDNet waveforms
         data_augmentor(fpath_in=f'Data/esc50_wav_acdnet_tfr/raw/fold_{i}.tfrecords',
                        fpath_out=f'Data/esc50_wav_acdnet_tfr/aug/fold_{i}.tfrecords',
