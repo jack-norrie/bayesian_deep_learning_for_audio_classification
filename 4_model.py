@@ -52,6 +52,32 @@ def read_spectrogram_tfrecord(example):
 
     return image, label
 
+def read_windowed_spectrogram_tfrecord(example):
+    tfrecord_format = {
+        'id': tf.io.FixedLenFeature([], tf.float64),
+        'height': tf.io.FixedLenFeature([], tf.int64),
+        'width': tf.io.FixedLenFeature([], tf.int64),
+        'depth': tf.io.FixedLenFeature([], tf.int64),
+        'image': tf.io.FixedLenFeature([], tf.string),
+        'label': tf.io.FixedLenFeature([], tf.int64)
+        }
+
+    example = tf.io.parse_single_example(example, tfrecord_format)
+
+    # Extract content
+    id = example['id']
+    height = example['height']
+    width = example['width']
+    depth = example['depth']
+    image = example['image']
+    label = example['label']
+
+    # Process content
+    image = tf.io.parse_tensor(image, out_type=tf.float32)
+    image = tf.reshape(image, shape=[128, 50, 2])
+
+    return image, label
+
 def load_dataset(filenames, reader=lambda example:\
         read_waveform_tfrecord(example)):
     ignore_order = tf.data.Options()
@@ -545,8 +571,51 @@ def train_simp():
     train_model(model, data_train, data_val, epochs=500,
                 callbacks=[tf.keras.callbacks.LearningRateScheduler(scheduler)])
 
+def gen_wind_mel_cnn(input_shape=(128, 50, 2), num_classes=50,
+                     loss='categorical_crossentropy',
+                     optimizer=SGD(learning_rate=0.002, nesterov=0.9),
+                     metrics=['accuracy'],
+                     reg = 1e-3,
+                     dor=0.5):
+    model = Sequential([
+        Input(shape=input_shape, dtype='float32'),
+        Conv2D(filters=80, kernel_size=(120, 5), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg)),
+        MaxPool2D(pool_size=(9, 3), strides=(1, 3)),
+        Dropout(rate=dor),
+        Conv2D(filters=80, kernel_size=(1, 3), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg)),
+        MaxPool2D(pool_size=(1, 3), strides=(1, 3)),
+        Flatten(),
+        Dense(units=250, activation='relu',
+              kernel_regularizer=regularizers.l2(reg)),
+        Dropout(rate=dor),
+        Dense(units=250, activation='relu',
+              kernel_regularizer=regularizers.l2(reg)),
+        Dropout(rate=dor),
+        Dense(units=num_classes, activation='softmax')
+    ])
+
+    model.summary()
+
+def train_wind_mel_cnn():
+    data_train = get_dataset(list(set().union(*[
+        [f'Data/esc50_mel_wind_tfr/{dir}/fold_{i}.tfrecords' for i in [1, 2, 3, 4]]
+        for dir in ['raw', 'aug']])),
+                             reader=read_windowed_spectrogram_tfrecord,
+                             batch_size=1024)
+    data_val = get_dataset('Data/esc50_mel_wind_tfr/raw/fold_5.tfrecords',
+                           reader=read_windowed_spectrogram_tfrecord,
+                           batch_size=1024)
+
+    model = gen_simp()
+
+    train_model(model, data_train, data_val, epochs=100)
+
 if __name__ == '__main__':
     # Set GPU to use:
     import os
-    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
-    train_acdnet()
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+    train_wind_mel_cnn()
