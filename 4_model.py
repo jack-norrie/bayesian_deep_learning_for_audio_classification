@@ -630,21 +630,35 @@ def gen_wind_mel_cnn_insp(input_shape=(128, 50, 2), num_classes=50,
 
     model = Sequential([
         Input(shape=input_shape, dtype='float32'),
-        Conv2D(filters=80, kernel_size=(120, 5), strides=(1, 1),
+        Conv2D(filters=16, kernel_size=(16, 8), strides=(1, 1),
                activation='relu',
                kernel_regularizer=regularizers.l2(reg)),
-        MaxPool2D(pool_size=(9, 3), strides=(1, 3)),
+        Conv2D(filters=16, kernel_size=(16, 8), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg)),
+        MaxPool2D(pool_size=(8, 4), strides=(4, 2)),
+        BatchNormalization(),
         Dropout(rate=dor),
-        Conv2D(filters=80, kernel_size=(1, 3), strides=(1, 1),
+        Conv2D(filters=32, kernel_size=(4, 2), strides=(1, 1),
                activation='relu',
                kernel_regularizer=regularizers.l2(reg)),
-        MaxPool2D(pool_size=(1, 3), strides=(1, 3)),
+        Conv2D(filters=32, kernel_size=(4, 2), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg)),
+        MaxPool2D(pool_size=(2, 2), strides=(2, 2)),
+        BatchNormalization(),
+        Dropout(rate=dor),
+        Conv2D(filters=64, kernel_size=(2, 2), strides=(1, 1),
+               activation='relu',
+               kernel_regularizer=regularizers.l2(reg)),
+        AvgPool2D(pool_size=(7, 6), strides=(7, 6)),
+        BatchNormalization(),
         Flatten(),
-        Dense(units=256, activation='relu',
+        Dense(units=64, activation='relu',
               kernel_regularizer=regularizers.l2(reg)),
-        Dropout(rate=dor),
-        Dense(units=256, activation='relu',
+        Dense(units=64, activation='relu',
               kernel_regularizer=regularizers.l2(reg)),
+        BatchNormalization(),
         Dropout(rate=dor),
         Dense(units=num_classes, activation='softmax')
     ])
@@ -656,6 +670,8 @@ def gen_wind_mel_cnn_insp(input_shape=(128, 50, 2), num_classes=50,
                   metrics=metrics)
 
     return model
+
+gen_wind_mel_cnn_insp()
 
 def train_wind_mel_cnn_insp():
     data_train = get_dataset(list(set().union(*[
