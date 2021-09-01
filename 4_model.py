@@ -617,7 +617,7 @@ def train_wind_mel_cnn():
                            reader=read_windowed_spectrogram_tfrecord,
                            batch_size=1024)
 
-    model = gen_wind_mel_cnn()
+    model = gen_wind_mel_cnn(optimizer=Adam())
 
     train_model(model, data_train, data_val, epochs=100)
 
