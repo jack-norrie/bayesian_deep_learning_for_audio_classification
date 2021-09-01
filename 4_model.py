@@ -74,7 +74,7 @@ def read_windowed_spectrogram_tfrecord(example):
 
     # Process content
     image = tf.io.parse_tensor(image, out_type=tf.float32)
-    image = tf.reshape(image, shape=[128, 50, 2])
+    image = tf.reshape(image, shape=[128, 128, 2])
 
     return image, label
 
