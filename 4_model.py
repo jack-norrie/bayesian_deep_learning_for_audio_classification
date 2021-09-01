@@ -605,6 +605,8 @@ def gen_wind_mel_cnn(input_shape=(128, 50, 2), num_classes=50,
                   loss=loss,
                   metrics=metrics)
 
+    return model
+
 def train_wind_mel_cnn():
     data_train = get_dataset(list(set().union(*[
         [f'Data/esc50_mel_wind_tfr/{dir}/fold_{i}.tfrecords' for i in [1, 2, 3, 4]]
@@ -616,13 +618,8 @@ def train_wind_mel_cnn():
                            batch_size=1024)
 
     model = gen_wind_mel_cnn()
-    sample = next(iter(data_train))[0]
-    print(model(sample))
 
-    print(data_train)
-    print(next(iter(data_train)))
-
-    # train_model(model, data_train, data_val, epochs=100)
+    train_model(model, data_train, data_val, epochs=100)
 
 if __name__ == '__main__':
     # Set GPU to use:
