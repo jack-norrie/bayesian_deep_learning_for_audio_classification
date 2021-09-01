@@ -617,7 +617,7 @@ def train_wind_mel_cnn():
 
     model = gen_wind_mel_cnn()
     sample = next(iter(data_train))[0]
-    model(sample)
+    print(model(sample))
 
     print(data_train)
     print(next(iter(data_train)))
