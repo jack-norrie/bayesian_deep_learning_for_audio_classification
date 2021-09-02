@@ -625,7 +625,7 @@ def gen_wind_mel_cnn_insp(input_shape=(128, 128, 2), num_classes=50,
                      loss='categorical_crossentropy',
                      optimizer=Adam(),
                      metrics=['accuracy'],
-                     reg = 1e-3,
+                     reg = 5e-3,
                      dor=0.5):
 
     model = Sequential([
@@ -681,9 +681,9 @@ def train_wind_mel_cnn_insp():
                            reader=read_windowed_spectrogram_tfrecord,
                            batch_size=1024)
 
-    model = gen_wind_mel_cnn_insp(optimizer=Adam())
+    model = gen_wind_mel_cnn_insp()
 
-    train_model(model, data_train, data_val, epochs=100)
+    train_model(model, data_train, data_val, epochs=250)
 
 if __name__ == '__main__':
     # Set GPU to use:
