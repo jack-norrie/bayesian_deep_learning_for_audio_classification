@@ -671,8 +671,6 @@ def gen_wind_mel_cnn_insp(input_shape=(128, 128, 2), num_classes=50,
 
     return model
 
-gen_wind_mel_cnn_insp()
-
 def train_wind_mel_cnn_insp():
     data_train = get_dataset(
         [f'Data/esc50_mel_wind_tfr/aug/fold_{i}.tfrecords' for i in [1, 2, 3, 4]],
