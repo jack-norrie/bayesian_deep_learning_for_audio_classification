@@ -99,7 +99,7 @@ def get_dataset(filenames, reader=lambda example:\
         read_waveform_tfrecord(example), batch_size = 16, classes=50):
     dataset = load_dataset(filenames, reader=reader)
     dataset = dataset.map(lambda x, y: (x, tf.one_hot(y, classes))) #OHE
-    dataset = dataset.shuffle(65536)
+    dataset = dataset.shuffle(8192)
     dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
     dataset = dataset.batch(batch_size)
     return dataset
