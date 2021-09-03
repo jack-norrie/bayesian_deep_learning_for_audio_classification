@@ -599,6 +599,8 @@ def gen_wind_mel_cnn(input_shape=(128, 128, 2), num_classes=50,
         Dense(units=num_classes, activation='softmax')
     ])
 
+# Test
+
     model.summary()
 
     model.compile(optimizer=optimizer,
