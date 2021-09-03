@@ -623,7 +623,7 @@ def train_wind_mel_cnn():
 
 def gen_wind_mel_cnn_insp(input_shape=(128, 128, 2), num_classes=50,
                      loss='categorical_crossentropy',
-                     optimizer=SGD(learning_rate=0.002, nesterov=0.9),
+                     optimizer=SGD(learning_rate=0.01, nesterov=0.9),
                      metrics=['accuracy'],
                      reg = 2.5e-2,
                      dor=0.5):
@@ -684,7 +684,7 @@ def train_wind_mel_cnn_insp():
 
     model = gen_wind_mel_cnn_insp()
 
-    train_model(model, data_train, data_val, epochs=250)
+    train_model(model, data_train, data_val, epochs=150)
 
 if __name__ == '__main__':
     # Set GPU to use:
