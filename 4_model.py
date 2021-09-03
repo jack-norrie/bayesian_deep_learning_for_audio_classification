@@ -627,7 +627,7 @@ def gen_wind_mel_cnn_insp(input_shape=(128, 128, 2), num_classes=50,
                           loss='categorical_crossentropy',
                           optimizer=RMSprop(),
                           metrics=['accuracy'],
-                          reg = 2.5e-2):
+                          reg = 5e-2):
 
     model = Sequential([
         Input(shape=input_shape, dtype='float32'),
