@@ -656,9 +656,7 @@ def gen_wind_mel_cnn_insp(input_shape=(128, 128, 2), num_classes=50,
         Flatten(),
         BatchNormalization(),
         Dropout(rate=dor),
-        Dense(units=64, activation='elu',
-              kernel_regularizer=regularizers.l2(reg)),
-        Dense(units=64, activation='elu',
+        Dense(units=128, activation='elu',
               kernel_regularizer=regularizers.l2(reg)),
         Dense(units=num_classes, activation='softmax')
     ])
