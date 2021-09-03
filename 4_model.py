@@ -630,6 +630,7 @@ def gen_wind_mel_cnn_insp(input_shape=(128, 128, 2), num_classes=50,
 
     model = Sequential([
         Input(shape=input_shape, dtype='float32'),
+        BatchNormalization(),
         Conv2D(filters=16, kernel_size=(16, 16), strides=(1, 1),
                activation='elu',
                kernel_regularizer=regularizers.l2(reg)),
