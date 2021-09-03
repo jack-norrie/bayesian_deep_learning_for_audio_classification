@@ -623,7 +623,7 @@ def train_wind_mel_cnn():
 
 def gen_wind_mel_cnn_insp(input_shape=(128, 128, 2), num_classes=50,
                      loss='categorical_crossentropy',
-                     optimizer=RMSprop(),
+                     optimizer=SGD(learning_rate=0.002, nesterov=0.9),
                      metrics=['accuracy'],
                      reg = 2.5e-2,
                      dor=0.5):
