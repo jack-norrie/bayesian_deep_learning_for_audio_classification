@@ -696,5 +696,5 @@ def train_wind_mel_cnn_insp():
 if __name__ == '__main__':
     # Set GPU to use:
     import os
-    os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "7"
     train_wind_mel_cnn_insp()
