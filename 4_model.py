@@ -627,18 +627,18 @@ def gen_wind_mel_cnn_insp(input_shape=(128, 128, 2), num_classes=50,
                           loss='categorical_crossentropy',
                           optimizer=RMSprop(),
                           metrics=['accuracy'],
-                          reg = 1e-4):
+                          reg = 5e-4):
 
     model = Sequential([
         Input(shape=input_shape, dtype='float32'),
         BatchNormalization(),
-        Conv2D(filters=8, kernel_size=15, strides=1,
+        Conv2D(filters=16, kernel_size=15, strides=1,
                activation='elu',
                kernel_regularizer=regularizers.l2(reg)),
         MaxPool2D(pool_size=3, strides=3),
         BatchNormalization(),
         Dropout(rate=0.2),
-        Conv2D(filters=16, kernel_size=7, strides=1,
+        Conv2D(filters=32, kernel_size=7, strides=1,
                activation='elu',
                kernel_regularizer=regularizers.l2(reg)),
         MaxPool2D(pool_size=2, strides=2),
