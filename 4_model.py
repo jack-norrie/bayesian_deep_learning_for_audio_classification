@@ -1,3 +1,4 @@
+import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.layers import Input, Dense, Dropout, BatchNormalization,\
     MaxPool2D, AvgPool2D, Flatten, Permute, Conv1D, Conv2D
@@ -673,17 +674,35 @@ def gen_wind_mel_cnn_insp(input_shape=(128, 128, 2), num_classes=50,
     return model
 
 def train_wind_mel_cnn_insp():
-    data_train = get_dataset(
-        [f'Data/esc50_mel_wind_tfr/aug/fold_{i}.tfrecords' for i in [1, 2, 3, 4]],
-        reader=read_windowed_spectrogram_tfrecord,
-        batch_size=1024)
-    data_val = get_dataset('Data/esc50_mel_wind_tfr/raw/fold_5.tfrecords',
-                           reader=read_windowed_spectrogram_tfrecord,
-                           batch_size=1024)
+    fold_list = list(range(1, 6))
+    for fold in range(1, 6):
+        # Make a list of folds that exclude the current validation fold
+        train_fold_list = fold_list[:fold-1] + fold_list[fold:]
 
-    model = gen_wind_mel_cnn_insp()
+        # Use training fold list to load in training data
+        data_train = get_dataset(
+            [f'Data/esc50_mel_wind_tfr/aug/fold_{i}.tfrecords' for i in train_fold_list],
+            reader=read_windowed_spectrogram_tfrecord,
+            batch_size=1024)
+        # Load validation data
+        data_val = get_dataset(f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords',
+                               reader=read_windowed_spectrogram_tfrecord,
+                               batch_size=1024)
 
-    train_model(model, data_train, data_val, epochs=150)
+        # Generate model
+        model = gen_wind_mel_cnn_insp()
+
+        # Train model and record history
+        history = model.fit(data_train,
+                  validation_data=data_val,
+                  epochs=50)
+
+        # Save history
+        history_df = pd.DataFrame(history.history)
+        history_df.to_csv('models/cnn/hist_fold_{i}.csv')
+
+        # Save model
+        model.save('models/cnn/model_fold_{i}.hp5')
 
 if __name__ == '__main__':
     # Set GPU to use:
