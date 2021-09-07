@@ -695,14 +695,14 @@ def train_wind_mel_cnn_insp():
         # Train model and record history
         history = model.fit(data_train,
                   validation_data=data_val,
-                  epochs=50)
+                  epochs=100)
 
         # Save history
         history_df = pd.DataFrame(history.history)
-        history_df.to_csv('models/cnn/hist_fold_{i}.csv')
+        history_df.to_csv('models/cnn/hist_fold_{fold}.csv')
 
         # Save model
-        model.save('models/cnn/model_fold_{i}.hp5')
+        model.save('models/cnn/model_fold_{fold}.hp5')
 
 if __name__ == '__main__':
     # Set GPU to use:
