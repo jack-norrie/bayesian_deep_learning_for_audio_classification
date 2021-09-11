@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
             # Evaluate previous id fully - will not enter on first iteration
             if current_id:
-                prediction_probs /= tf.float32(num_ids)
+                prediction_probs /= tf.cast(num_ids, tf.float32)
                 prediction = tf.math.argmax(prediction_probs)
 
                 # Incriment correct predictino counter if prediction correct
