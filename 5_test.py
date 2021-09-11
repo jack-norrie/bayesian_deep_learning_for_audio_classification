@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 from functools import partial
 
 
@@ -45,13 +46,8 @@ def load_dataset(filenames, reader=lambda example:\
     # returns a dataset of (image, label)
     return dataset
 
-if __name__ == '__main__':
-    import os
-    fold = 1
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-    data_val = load_dataset(f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords')
-
-    model_fold = tf.keras.models.load_model(f'models/cnn/model_fold_{fold}.hp5')
+def test_wind_mel_model(model_path, data_val):
+    model_fold = tf.keras.models.load_model(model_path)
 
     num_examples = 0
     num_correct = 0
@@ -73,17 +69,35 @@ if __name__ == '__main__':
                 if prediction == cuurent_label:
                     num_correct += 1
 
-
-
             # reset and incriment variables
             num_examples += 1
             current_id = id
             cuurent_label = label
             num_ids = 1
-            prediction_probs =  model_fold(feature)
+            prediction_probs = model_fold(feature)
         else:
             num_ids += 1
             prediction_probs += model_fold(feature)
 
-    print(f"Fold {fold}: {num_correct} / {num_examples} "
-          f"= {num_correct/num_examples:.4f}")
+    accuracy = num_correct / num_examples
+
+    return accuracy
+
+def cv(model_path_stem):
+    fold_accs = []
+    for fold in range(1, 6):
+        data_val = load_dataset(
+            f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords')
+        model_path = f'{model_path_stem}/model_fold_{fold}.hp5'
+        fold_acc = test_wind_mel_model(model_path)
+        print(f"Fold {fold}: {fold_acc:.4f}")
+        fold_accs.append(fold_acc)
+    cv_acc = np.mean(fold_accs)
+    print("The cross validation accuracy is {cv_acc}")
+
+if __name__ == '__main__':
+    import os
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+    cv('models/cnn')
+
+
