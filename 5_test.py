@@ -51,5 +51,5 @@ if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     data_val = load_dataset(f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords')
 
-    for example in data_val:
+    for example in data_val.take(20):
         print(example)
