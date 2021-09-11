@@ -47,6 +47,15 @@ def load_dataset(filenames, reader=lambda example:\
     return dataset
 
 def test_wind_mel_model(model_path, data_val):
+    """ Tests models trained on segmented log-mel spectrograms.
+
+    Args:
+        model_path (str): File location for the model.
+        data_val (tf.Dataset): Dataset to test on.
+
+    Returns:
+        Accuracy of model evaluated over the supplied dataset.
+    """
     model_fold = tf.keras.models.load_model(model_path)
 
     num_examples = 0
@@ -84,6 +93,14 @@ def test_wind_mel_model(model_path, data_val):
     return accuracy
 
 def cv(model_path_stem):
+    """ Performs cross validation on a segmented log-mel spectrogram trained model.
+
+    Args:
+        model_path_stem: Path of models trained on respective training folds.
+
+    Returns:
+
+    """
     fold_accs = []
     for fold in range(1, 6):
         data_val = load_dataset(
