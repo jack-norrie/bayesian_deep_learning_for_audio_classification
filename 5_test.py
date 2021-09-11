@@ -108,7 +108,7 @@ def cv(model_path_stem):
         print(f"Fold {fold}: {fold_acc:.4f}")
         fold_accs.append(fold_acc)
     cv_acc = np.mean(fold_accs)
-    print(f"The cross validation accuracy is {cv_acc}")
+    print(f"The cross validation accuracy is {cv_acc:.4f}")
 
 if __name__ == '__main__':
     import os
