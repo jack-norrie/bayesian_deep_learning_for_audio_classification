@@ -51,5 +51,40 @@ if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     data_val = load_dataset(f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords')
 
+    model_fold = tf.keras.models.load_model("f'models/cnn/hist_fold_{fold}.csv'")
+
+    num_examples = 0
+    num_correct = 0
+    current_id = None
+    cuurent_label = None
     for example in data_val.take(20):
-        print(example)
+        feature = example[0]
+        label = example[1]
+        id = example[2]
+
+        # Check to see if new example has entered
+        if id != current_id:
+
+            # Evaluate previous id fully - will not enter on first iteration
+            if current_id:
+                prediction_probs /= tf.float32(num_ids)
+                prediction = tf.math.argmax(prediction_probs)
+
+                # Incriment correct predictino counter if prediction correct
+                if prediction == cuurent_label:
+                    num_correct += 1
+
+
+
+            # reset and incriment variables
+            num_examples += 1
+            current_id = id
+            cuurent_label = label
+            num_ids = 1
+            prediction_probs =  model_fold(feature)
+        else:
+            num_ids += 1
+            prediction_probs += model_fold(feature)
+
+    print(f"Fold {fold}: {num_correct} / {num_examples} "
+          f"= {num_correct/num_examples:.4f}")
