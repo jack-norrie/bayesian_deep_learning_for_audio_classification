@@ -232,8 +232,10 @@ def sgn(waveform, sr=44100):
         aug_waveform = volume_gain_range(aug_waveform)
     if np.random.choice([0, 1]):
         aug_waveform = time_shift_range(aug_waveform, sr)
+    """
     if np.random.choice([0, 1]):
         aug_waveform = snr_noiser(aug_waveform)
+    """
     return aug_waveform
 
 def data_augmentor(fpath_in, fpath_out,
@@ -250,7 +252,7 @@ def data_augmentor(fpath_in, fpath_out,
     """
     data = load_dataset(fpath_in,
                         reader=lambda example:\
-                            read_waveform_tfrecord(example,output_shape))
+                            read_waveform_tfrecord(example, output_shape))
     augmented_features = []
     augmented_labels = []
     for sample in data:
@@ -311,14 +313,13 @@ def generate_augmentation_visualisation():
     visualise_augmentation(feature, sgn, x_vals=np.linspace(0, 5, len(feature)))
 
 def generate_augmentation_examples(augmentor, fpath,
-                                   sr = 44100, num_examples=5, augment_factor=9):
-    data = load_dataset('Data/esc50_wav_tfr/raw/fold_1.tfrecords',
-                        reader=lambda example:read_waveform_tfrecord(example))
+                                   num_examples=100, augment_factor=2):
+    data = load_dataset('Data/esc50_wav_tfr/raw/fold_1.tfrecords')
     data_sub = data.shuffle(1024).take(num_examples); del data
     for i, waveform in enumerate(data_sub):
         waveform = np.squeeze(waveform[0].numpy())
         wavfile.write(fpath + f'/{i+1}_1.wav', 44100, waveform)
-        for j in range(2, augment_factor + 2):
+        for j in range(2, augment_factor + 1):
             wavfile.write(fpath + f'/{i+1}_{j}.wav', 44100, augmentor(waveform))
 
 
@@ -346,7 +347,7 @@ if __name__ == '__main__':
 
         
         generate_augmentation_visualisation()
-        generate_augmentation_examples(augmentor=sgn,
+        generate_augmentation_examples(augmentor=lambda wav: sgn(wav),
                                        fpath='Figures/aug_clips/sgn')
         """
 
