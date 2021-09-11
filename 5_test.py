@@ -57,7 +57,7 @@ if __name__ == '__main__':
     num_correct = 0
     current_id = None
     cuurent_label = None
-    for example in data_val.take(50):
+    for example in data_val:
         feature = tf.expand_dims(example[0], 0)
         label = example[1]
         id = example[2]
