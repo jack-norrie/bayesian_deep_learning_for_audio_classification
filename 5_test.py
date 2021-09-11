@@ -69,7 +69,7 @@ if __name__ == '__main__':
             if current_id:
                 prediction_probs /= tf.cast(num_ids, tf.float32)
                 prediction = tf.math.argmax(prediction_probs).numpy()
-
+                print(prediction)
                 # Incriment correct predictino counter if prediction correct
                 if prediction == cuurent_label:
                     num_correct += 1
