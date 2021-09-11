@@ -51,7 +51,7 @@ if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     data_val = load_dataset(f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords')
 
-    model_fold = tf.keras.models.load_model("f'models/cnn/hist_fold_{fold}.csv'")
+    model_fold = tf.keras.models.load_model(f'models/cnn/hist_fold_{fold}.csv')
 
     num_examples = 0
     num_correct = 0
