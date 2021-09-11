@@ -98,15 +98,13 @@ def cv(model_path_stem):
     Args:
         model_path_stem: Path of models trained on respective training folds.
 
-    Returns:
-
     """
     fold_accs = []
     for fold in range(1, 6):
         data_val = load_dataset(
             f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords')
         model_path = f'{model_path_stem}/model_fold_{fold}.hp5'
-        fold_acc = test_wind_mel_model(model_path)
+        fold_acc = test_wind_mel_model(model_path, data_val)
         print(f"Fold {fold}: {fold_acc:.4f}")
         fold_accs.append(fold_acc)
     cv_acc = np.mean(fold_accs)
