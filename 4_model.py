@@ -787,4 +787,4 @@ if __name__ == '__main__':
     # Set GPU to use:
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = "7"
-    train_wind_mel(gen_wind_mel_bnn_insp, 100, 'bnn')
+    train_wind_mel(1024, gen_wind_mel_bnn_insp, 100, 'bnn')
