@@ -7,6 +7,8 @@ import matplotlib as mpl
 from cycler import cycler
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
+import tensorflow as tf
+from tensorflow.keras.activations import elu, relu
 plt.style.use('ggplot')
 
 def extract_readable_labs(meta, lab_col_name, readable_lab_col_name):
@@ -220,6 +222,22 @@ def plot_hpss(x, sample_rate=44100, figsize=(12, 4), frac=0.15, aspect=20):
                                  figsize=figsize,
                                  frac=frac, aspect=aspect)
 
+def activation_plot(range=[-1.5, 1.5], figsize=[8, 4]):
+    fig, axes = plt.subplots(nrows=1, ncols=2,
+                             sharey=True, figsize=figsize)
+    title = ["ReLU", "ELU"]
+    for i, func in enumerate([relu, elu]):
+        a = tf.linspace(*range, 100)
+        with tf.GradientTape() as t:
+            t.watch(a)
+            h = func(a)
+        dh_da =  t.gradient(h, a)
+        axes[i].plot(a.numpy(), h.numpy())
+        axes[i].plot(a.numpy(), dh_da.numpy(), ls="--")
+        axes[i].set_title(title[i])
+
+    return fig
+
 
 if __name__ == '__main__':
     # Load  in relevant data.
@@ -257,6 +275,7 @@ if __name__ == '__main__':
                    figsize=(10, 4.25)).\
         savefig('Figures/single_waveform.PNG')
 
+    activation_plot(figsize=[8, 3]).savefig('Figures/activation.PNG')
 
 
 

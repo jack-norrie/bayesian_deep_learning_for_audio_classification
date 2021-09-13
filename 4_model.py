@@ -150,10 +150,10 @@ def gen_efn_model(input_shape=(128, 431, 3), output_shape=50):
 def nll(y_true, y_pred):
     return -y_pred.log_prob(y_true)
 
-def prior(kernel_size, bias_size, dtype=None):
+def prior(kernel_size, bias_size, dtype=None, scale=1):
     n = kernel_size + bias_size
     return lambda t : tfd.MultivariateNormalDiag(loc=tf.zeros(n),
-                                                 scale_diag=tf.ones(n))
+                                                 scale_diag=tf.ones(n) * scale)
 def posterior(kernel_size, bias_size, dtype=None):
     n = kernel_size + bias_size
     return Sequential([
@@ -673,7 +673,86 @@ def gen_wind_mel_cnn_insp(input_shape=(128, 128, 2), num_classes=50,
 
     return model
 
-def train_wind_mel_cnn_insp():
+def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
+                          loss='categorical_crossentropy',
+                          optimizer=RMSprop(),
+                          metrics=['accuracy'],
+                          reg = 1e-4,
+                          batch_size=1024):
+
+    # Modify prior for appropraite regularisation
+    prior = lambda kernel_size, bias_size, dtype :\
+        prior(kernel_size, bias_size, dtype=None, scale=1/(2*reg))
+
+    model = Sequential([
+        Input(shape=input_shape, dtype='float32'),
+        BatchNormalization(),
+        Conv2D(filters=16, kernel_size=15, strides=1,
+               activation='elu',
+               kernel_regularizer=regularizers.l2(reg)),
+        MaxPool2D(pool_size=3, strides=3),
+        BatchNormalization(),
+        Dropout(rate=0.2),
+        Conv2D(filters=32, kernel_size=7, strides=1,
+               activation='elu',
+               kernel_regularizer=regularizers.l2(reg)),
+        MaxPool2D(pool_size=2, strides=2),
+        BatchNormalization(),
+        Dropout(rate=0.2),
+        Conv2D(filters=32, kernel_size=5, strides=(1, 1),
+               activation='elu',
+               kernel_regularizer=regularizers.l2(reg)),
+        AvgPool2D(pool_size=2, strides=2),
+        BatchNormalization(),
+        Dropout(rate=0.2),
+        Conv2D(filters=64, kernel_size=3, strides=(1, 1),
+               activation='elu',
+               kernel_regularizer=regularizers.l2(reg)),
+        AvgPool2D(pool_size=2, strides=2),
+        Flatten(),
+        BatchNormalization(),
+        Dropout(rate=0.5),
+        tfpl.DenseVariational(
+            tfpl.OneHotCategorical.params_size(num_classes),
+            activation='elu',
+            make_posterior_fn=posterior,
+            make_prior_fn=prior,
+            kl_weight=1 / batch_size,
+            kl_use_exact=False
+        ),
+        BatchNormalization(),
+        Dropout(rate=0.5),
+        tfpl.DenseVariational(
+            tfpl.OneHotCategorical.params_size(num_classes),
+            make_posterior_fn=posterior,
+            make_prior_fn=prior,
+            kl_weight=1 / batch_size,
+            kl_use_exact=False
+        ),
+        tfpl.OneHotCategorical(num_classes,
+                               convert_to_tensor_fn=tfd.Distribution.mode)
+    ])
+
+    tfpl.DenseVariational(
+        tfpl.OneHotCategorical.params_size(num_classes),
+        make_posterior_fn=posterior,
+        make_prior_fn=prior,
+        kl_weight=1 / batch_size,
+        kl_use_exact=False
+    )
+
+    tfpl.OneHotCategorical(num_classes,
+                           convert_to_tensor_fn=tfd.Distribution.mode)
+
+    model.summary()
+
+    model.compile(optimizer=optimizer,
+                  loss=loss,
+                  metrics=metrics)
+
+    return model
+
+def train_wind_mel(batch_szie, model_generator, epochs, fpath_id):
     fold_list = list(range(1, 6))
     for fold in range(1, 6):
         # Make a list of folds that exclude the current validation fold
@@ -687,25 +766,25 @@ def train_wind_mel_cnn_insp():
         # Load validation data
         data_val = get_dataset(f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords',
                                reader=read_windowed_spectrogram_tfrecord,
-                               batch_size=1024)
+                               batch_size=batch_szie)
 
         # Generate model
-        model = gen_wind_mel_cnn_insp()
+        model = model_generator(batch_szie=batch_szie)
 
         # Train model and record history
         history = model.fit(data_train,
                   validation_data=data_val,
-                  epochs=100)
+                  epochs=epochs)
 
         # Save history
         history_df = pd.DataFrame(history.history)
-        history_df.to_csv(f'models/cnn/hist_fold_{fold}.csv')
+        history_df.to_csv(f'models/{fpath_id}/hist_fold_{fold}.csv')
 
         # Save model
-        model.save(f'models/cnn/model_fold_{fold}.hp5')
+        model.save(f'models/{fpath_id}/model_fold_{fold}.hp5')
 
 if __name__ == '__main__':
     # Set GPU to use:
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = "7"
-    train_wind_mel_cnn_insp()
+    train_wind_mel(gen_wind_mel_bnn_insp, 100, 'bnn')
