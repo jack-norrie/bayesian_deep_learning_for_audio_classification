@@ -752,7 +752,7 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
 
     return model
 
-def train_wind_mel(batch_szie, model_generator, epochs, fpath_id):
+def train_wind_mel(batch_size, model_generator, epochs, fpath_id):
     fold_list = list(range(1, 6))
     for fold in range(1, 6):
         # Make a list of folds that exclude the current validation fold
@@ -769,7 +769,7 @@ def train_wind_mel(batch_szie, model_generator, epochs, fpath_id):
                                batch_size=batch_szie)
 
         # Generate model
-        model = model_generator(batch_szie=batch_szie)
+        model = model_generator(batch_size=batch_size)
 
         # Train model and record history
         history = model.fit(data_train,
