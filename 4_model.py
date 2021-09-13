@@ -766,7 +766,7 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id):
         # Load validation data
         data_val = get_dataset(f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords',
                                reader=read_windowed_spectrogram_tfrecord,
-                               batch_size=batch_szie)
+                               batch_size=batch_size)
 
         # Generate model
         model = model_generator(batch_size=batch_size)
