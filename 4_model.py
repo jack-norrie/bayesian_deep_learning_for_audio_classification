@@ -799,9 +799,10 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id):
         # Generate model
         train_size = 0
         for batch in data_train:
-            batch
+            print(batch)
+            return "lol"
         print(train_size)
-        return "lol"
+
         model = model_generator(batch_size=len(list(data_train)))
 
         # Train model and record history
