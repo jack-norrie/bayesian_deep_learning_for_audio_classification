@@ -238,9 +238,14 @@ def activation_plot(range=[-1.5, 1.5], figsize=[8, 4]):
 
     return fig
 
-def plot_learning_curves(history_paths):
-    histories = pd.concat([pd.read_csv(path) for path in history_paths])
-    pd.plot()
+def plot_learning_curves(history_path_stem, num_folds=5, num_ensembles=1):
+    fig, axes = plt.subplots(nrows=num_ensembles, ncols=1,  squeeze=False)
+        for i in range(1, num_folds+1):
+            history_paths = [f'{history_path_stem}history_fold_{i}_{j}'
+                                      for j in range(1, 6)]
+            histor = []
+            histories =
+
 
 
 if __name__ == '__main__':
