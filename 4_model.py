@@ -797,9 +797,11 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id):
                                batch_size=batch_size)
 
         # Generate model
-        print(tf.data.experimental.cardinality(data_train))
+        train_size = 0
+        for batch in data_train:
+            train_size += batch.cardinality().numpy()
+        print(train_size)
         return "lol"
-
         model = model_generator(batch_size=len(list(data_train)))
 
         # Train model and record history
