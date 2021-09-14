@@ -795,7 +795,7 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
     return model
 
 def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
-                   save_via_pickle=False):
+                   save_model=True, make_preds = True):
     fold_list = list(range(1, 6))
     for fold in range(1, 6):
         # Make a list of folds that exclude the current validation fold
@@ -827,13 +827,19 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
         history_df.to_csv(f'models/{fpath_id}/hist_fold_{fold}.csv')
 
         # Save model
-        if not save_via_pickle:
+        if save_model:
             model.save(f'models/{fpath_id}/model_fold_{fold}.hp5')
-        else:
-            pickling_on = open(f'models/{fpath_id}/model_fold_{fold}.pickle',
-                               "wb")
-            pickle.dump(model, pickling_on)
-            pickling_on.close()
+
+        # Save predictions
+        if make_preds:
+            # unshuffle and unbatch validation set
+            data_val = load_dataset(
+                f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords',
+                reader=read_windowed_spectrogram_tfrecord)
+            preds = model(data_val)
+        print(preds)
+
+
 
 if __name__ == '__main__':
     # Set GPU to use:
