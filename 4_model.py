@@ -841,12 +841,13 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
                     preds.append(model(example[0]).numpy())
                 else:
                     # Make 100 predicitons for the input
-                    print(model(example[0]))
-                    print(model(example[0]))
-                    return "stop"
-                    example_preds = model(example[0]).sample(100)
-                    vpd = tf.reduce_mean(example_preds).numpy()
+                    example_preds = [model(example[0]) for _ in range(100)]
+                    example_preds = np.mean(example_preds)
+                    print(example_preds)
+                    vpd = np.mean(example_preds, axis=0)
+                    print(vpd)
                     preds.append(vpd)
+                    return "stop"
 
         preds = np.stack(preds)
         np.save(f'models/{fpath_id}/preds_fold_{fold}.npy', preds)
