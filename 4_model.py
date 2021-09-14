@@ -682,7 +682,7 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
 
     # Modify prior for appropraite regularisation
     prior = lambda kernel_size, bias_size, dtype :\
-        prior(kernel_size, bias_size, dtype=None, scale=1/(2*reg))
+        prior(kernel_size, bias_size, None, scale=1/(2*reg))
 
     model = Sequential([
         Input(shape=input_shape, dtype='float32'),
