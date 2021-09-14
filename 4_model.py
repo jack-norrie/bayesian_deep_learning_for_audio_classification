@@ -797,7 +797,7 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id):
                                batch_size=batch_size)
 
         # Generate model
-        print(data_train.cardinality())
+        print(data_train.cardinality().numpy())
         return "lol"
 
         model = model_generator(batch_size=len(list(data_train)))
