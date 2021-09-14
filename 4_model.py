@@ -679,7 +679,7 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
                           loss='categorical_crossentropy',
                           optimizer=RMSprop(learning_rate=0.025),
                           metrics=['accuracy'],
-                          reg = 0,
+                          reg = 1e-4,
                           prior_scale=1,
                           train_size=1024):
 
@@ -856,7 +856,19 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
 if __name__ == '__main__':
     # Set GPU to use:
     import os
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+    os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+
+    """
+    train_wind_mel(batch_size=1024,
+                   model_generator=gen_wind_mel_cnn_insp,
+                   epochs=100,
+                   fpath_id='cnn_ens',
+                   save_model=False,
+                   make_preds=True,
+                   prob_model=False,
+                   num_ensembles=5)
+    """
+
     train_wind_mel(batch_size=1024,
                    model_generator=gen_wind_mel_bnn_insp,
                    epochs=100,

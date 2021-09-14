@@ -240,11 +240,31 @@ def activation_plot(range=[-1.5, 1.5], figsize=[8, 4]):
 
 def plot_learning_curves(history_path_stem, num_folds=5, num_ensembles=1):
     fig, axes = plt.subplots(nrows=num_ensembles, ncols=1,  squeeze=False)
-        for i in range(1, num_folds+1):
-            history_paths = [f'{history_path_stem}history_fold_{i}_{j}'
-                                      for j in range(1, 6)]
-            histor = []
-            histories =
+    for i in range(1, num_folds+1):
+        history_paths = [f'{history_path_stem}history_fold_{i}_{j}' \
+                         for j in range(1, 6)]
+        histories = [pd.read_csv(path) for path in history_paths]
+        if len(histories) > 1:
+            alphha = 0.5
+        else:
+            alpha=1
+
+        for history in histories:
+            history.plot([i for i in range(1, len(history) + 1)],
+                         history['loss'], ax=axes[i, 0],
+                         color='red', alpha=alpha)
+            history.plot([i for i in range(1, len(history) + 1)],
+                         history['val_loss'], ax=axes[i, 0],
+                         color='orange', alpha=alpha)
+            history.plot([i for i in range(1, len(history) + 1)],
+                         history['accuracy'], ax=axes[i, 0],
+                         color='blue')
+            history.plot([i for i in range(1, len(history) + 1)],
+                         history['val_accuracy'], ax=axes[i, 0],
+                         color='purple', alpha=alpha)
+
+
+
 
 
 
