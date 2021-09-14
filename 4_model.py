@@ -724,14 +724,8 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
         Flatten(),
         BatchNormalization(),
         Dropout(rate=0.5),
-        tfpl.DenseVariational(
-            128,
-            activation='elu',
-            make_posterior_fn=posterior,
-            make_prior_fn=prior,
-            kl_weight=1 / batch_size,
-            kl_use_exact=False
-        ),
+        Dense(units=128, activation='elu',
+              kernel_regularizer=regularizers.l2(reg)),
         BatchNormalization(),
         Dropout(rate=0.5),
         tfpl.DenseVariational(
@@ -745,13 +739,17 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
                                convert_to_tensor_fn=tfd.Distribution.mode)
     ])
 
+    """
     tfpl.DenseVariational(
-        tfpl.OneHotCategorical.params_size(num_classes),
+        128,
+        activation='elu',
         make_posterior_fn=posterior,
         make_prior_fn=prior,
         kl_weight=1 / batch_size,
         kl_use_exact=False
     )
+    """
+
 
     tfpl.OneHotCategorical(num_classes,
                            convert_to_tensor_fn=tfd.Distribution.mode)
