@@ -833,6 +833,7 @@ if __name__ == '__main__':
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = '1'
 
+    """
     train_wind_mel(batch_size=1024,
                    model_generator=gen_wind_mel_cnn_insp,
                    epochs=1,
@@ -841,8 +842,10 @@ if __name__ == '__main__':
                    make_preds=True,
                    prob_model=False,
                    num_ensembles=100)
-
     """
+
+
+
     train_wind_mel(batch_size=1024,
                    model_generator=gen_wind_mel_bnn_insp,
                    epochs=100,
@@ -851,4 +854,3 @@ if __name__ == '__main__':
                    make_preds = True,
                    prob_model = True,
                    num_ensembles=5)
-    """
