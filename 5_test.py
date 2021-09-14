@@ -46,7 +46,7 @@ def load_dataset(filenames, reader=lambda example:\
     # returns a dataset of (image, label)
     return dataset
 
-def test_wind_mel_model(model_path, data_val):
+def test_wind_mel_model(preds_paths, data_val):
     """ Tests models trained on segmented log-mel spectrograms.
 
     Args:
@@ -56,43 +56,53 @@ def test_wind_mel_model(model_path, data_val):
     Returns:
         Accuracy of model evaluated over the supplied dataset.
     """
-    model_fold = tf.keras.models.load_model(model_path)
+    # Load model predicitions - allowing for possibility of ensemble
+    model_preds = np.stack([np.load(pred_path) for pred_path in preds_paths])
+    model_preds = np.mean(model_preds, axis=0)
 
+    # Get ids and true labels
+    labels = []
+    ids = []
+    for example in data_val:
+        labels.append(example[1])
+        ids.append(example[2])
+
+    # Calculate accuracy and label-predication pairs
     num_examples = 0
     num_correct = 0
     current_id = None
-    cuurent_label = None
-    for example in data_val:
-        feature = tf.expand_dims(example[0], 0)
-        label = example[1]
-        id = example[2]
+    current_label = None
+    lab_pred = []
+    for i in range(len(ids)):
+        label = labels[i]
+        id = ids[i]
 
         # Check to see if new example has entered
         if id != current_id:
 
             # Evaluate previous id fully - will not enter on first iteration
             if current_id:
-                prediction_probs /= tf.cast(num_ids, tf.float32)
-                prediction = tf.math.argmax(prediction_probs, axis=1).numpy()[0]
-                # Incriment correct predictino counter if prediction correct
-                if prediction == cuurent_label:
+                current_prediction_probs /= num_ids
+                prediction = np.argmax(current_prediction_probs)
+                # Increment correct prediction counter if prediction correct
+                if prediction == current_label:
                     num_correct += 1
 
             # reset and incriment variables
             num_examples += 1
             current_id = id
-            cuurent_label = label
+            current_label = label
             num_ids = 1
-            prediction_probs = model_fold(feature)
+            current_prediction_probs = model_preds[i]
         else:
             num_ids += 1
-            prediction_probs += model_fold(feature)
+            current_prediction_probs += model_preds[i]
 
     accuracy = num_correct / num_examples
 
     return accuracy
 
-def cv(model_path_stem):
+def cv(preds_path_stem, num_ensemble=1):
     """ Performs cross validation on a segmented log-mel spectrogram trained model.
 
     Args:
@@ -103,16 +113,17 @@ def cv(model_path_stem):
     for fold in range(1, 6):
         data_val = load_dataset(
             f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords')
-        model_path = f'{model_path_stem}/model_fold_{fold}.hp5'
-        fold_acc = test_wind_mel_model(model_path, data_val)
+        pred_paths=['{preds_path_stem}_preds_fold_{i}_{fold}'
+                    for i in range(1, num_ensemble+1)]
+        fold_acc = test_wind_mel_model(pred_paths, data_val)
         print(f"Fold {fold}: {fold_acc:.4f}")
         fold_accs.append(fold_acc)
     cv_acc = np.mean(fold_accs)
-    print(f"The cross validation accuracy is {cv_acc:.4f}")
+    print(f"dThe cross validation accuracy is {cv_acc:.4f}")
 
 if __name__ == '__main__':
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-    cv('models/cnn')
+    cv('models/bnn')
 
 
