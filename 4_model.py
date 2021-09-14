@@ -817,7 +817,7 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
         model = model_generator(train_size=train_size)
 
         # Train model and record history
-        history = model.fit(data_train,
+        history = model.fit(data_train.take(5),
                   validation_data=data_val,
                   epochs=epochs)
 
@@ -844,7 +844,7 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
                     example_preds = [model(example[0]) for _ in range(100)]
                     example_preds = np.mean(example_preds)
                     print(example_preds)
-                    vpd = np.mean(example_preds, axis=0)
+                    vpd = np.mean(example_preds, axis=-1)
                     print(vpd)
                     preds.append(vpd)
                     return "stop"
