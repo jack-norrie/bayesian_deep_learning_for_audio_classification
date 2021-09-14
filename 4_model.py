@@ -676,7 +676,7 @@ def gen_wind_mel_cnn_insp(input_shape=(128, 128, 2), num_classes=50,
     return model
 
 def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
-                          loss=nll,
+                          loss='categorical_crossentropy',
                           optimizer=RMSprop(learning_rate=0.025),
                           metrics=['accuracy'],
                           reg = 0,
@@ -744,6 +744,7 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
         Dropout(rate=0.5),
         tfp.layers.DenseReparameterization(
             tfpl.OneHotCategorical.params_size(num_classes),
+            activation='softmax',
             kernel_posterior_fn=tfpl.util.default_mean_field_normal_fn(),
             kernel_posterior_tensor_fn=(lambda d: d.sample()),
             kernel_prior_fn=tfp.layers.default_multivariate_normal_fn,
@@ -752,9 +753,7 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
             bias_posterior_tensor_fn = (lambda d: d.sample()),
             bias_prior_fn = tfp.layers.default_multivariate_normal_fn,
             bias_divergence_fn = (lambda q, p, ignore: kl(q, p)/train_size)
-    ),
-        tfpl.OneHotCategorical(num_classes,
-                               convert_to_tensor_fn= tfd.OneHotCategorical.logits)
+        )
     ])
 
     """
@@ -842,8 +841,8 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
                     preds.append(model(example[0]).numpy())
                 else:
                     # Make 100 predicitons for the input
-                    print(model(example[0]).sample(100))
-                    print(tf.keras.activations.softmax(model(example[0]).sample(100)))
+                    print(model(example[0]))
+                    print(model(example[0]))
                     return "stop"
                     example_preds = model(example[0]).sample(100)
                     vpd = tf.reduce_mean(example_preds).numpy()
