@@ -830,7 +830,7 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
         if not save_via_pickle:
             model.save(f'models/{fpath_id}/model_fold_{fold}.hp5')
         else:
-            pickling_on = open("f'models/{fpath_id}/model_fold_{fold}.pickle'",
+            pickling_on = open(f'models/{fpath_id}/model_fold_{fold}.pickle',
                                "wb")
             pickle.dump(model, pickling_on)
             pickling_on.close()
