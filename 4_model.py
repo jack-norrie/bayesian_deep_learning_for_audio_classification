@@ -842,8 +842,8 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
                     preds.append(model(example[0]).numpy())
                 else:
                     # Make 100 predicitons for the input
-                    print(model(example[0]).probs)
-                    print(model(example[0]).probs)
+                    print(model(example[0]).sample(100))
+                    print(tf.keras.activations.softmax(model(example[0]).sample(100)))
                     return "stop"
                     example_preds = model(example[0]).sample(100)
                     vpd = tf.reduce_mean(example_preds).numpy()
