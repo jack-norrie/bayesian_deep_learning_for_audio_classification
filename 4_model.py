@@ -794,7 +794,8 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
     return model
 
 def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
-                   save_model=True, make_preds = True, prob_model=False):
+                   save_model=True, make_preds = True, prob_model=False,
+                   num_ensembles=1):
     fold_list = list(range(1, 6))
     for fold in range(1, 6):
         # Make a list of folds that exclude the current validation fold
@@ -814,44 +815,43 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
         train_size = 0
         for batch in data_train:
             train_size += batch[0].shape[0]
-        model = model_generator(train_size=train_size)
 
-        # Train model and record history
-        history = model.fit(data_train,
-                            validation_data=data_val,
-                            epochs=epochs)
+        for ensemble in range(1, num_ensembles + 1):
+            model = model_generator(train_size=train_size)
 
-        # Save history
-        history_df = pd.DataFrame(history.history)
-        history_df.to_csv(f'models/{fpath_id}/hist_fold_{fold}.csv')
+            # Train model and record history
+            history = model.fit(data_train,
+                                validation_data=data_val,
+                                epochs=epochs)
 
-        # Save model
-        if save_model:
-            model.save(f'models/{fpath_id}/model_fold_{fold}.hp5')
+            # Save history
+            history_df = pd.DataFrame(history.history)
+            history_df.to_csv(f'models/{fpath_id}/hist_fold_{fold}.csv')
 
-        # Save predictions
-        if make_preds:
-            # unshuffle and unbatch validation set
-            data_val = load_dataset(
-                f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords',
-                reader=read_windowed_spectrogram_tfrecord)
-            preds = []
-            for example in data_val.batch(1):
-                if not prob_model:
-                    preds.append(model(example[0]).numpy())
-                else:
-                    # Make 100 predicitons for the input
-                    example_preds = [model(example[0]) for _ in range(2)]
-                    example_preds = np.stack(example_preds)
-                    print(example_preds)
-                    vpd = np.mean(example_preds, axis=0)
-                    print(vpd)
-                    preds.append(vpd)
-                    return "stop"
+            # Save model
+            if save_model:
+                model.save(f'models/{fpath_id}/model_fold_{fold}.hp5')
 
-        preds = np.stack(preds)
-        np.save(f'models/{fpath_id}/preds_fold_{fold}.npy', preds)
-        print(preds)
+            # Save predictions
+            if make_preds:
+                # unshuffle and unbatch validation set
+                data_val = load_dataset(
+                    f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords',
+                    reader=read_windowed_spectrogram_tfrecord)
+                preds = []
+                for example in data_val.batch(1):
+                    if not prob_model:
+                        preds.append(model(example[0]).numpy()[0])
+                    else:
+                        # Make 100 predicitons for the input
+                        example_preds = [model(example[0]) for _ in range(100)]
+                        example_preds = np.stack(example_preds)
+                        vpd = np.mean(example_preds, axis=0)
+                        preds.append(vpd[0])
+
+            preds = np.stack(preds)
+            np.save(f'models/{fpath_id}/preds_fold_{ensemble}_{fold}.npy', preds)
+            print(preds)
 
 
 
@@ -865,4 +865,5 @@ if __name__ == '__main__':
                    fpath_id='bnn',
                    save_model=False,
                    make_preds = True,
-                   prob_model = True)
+                   prob_model = True,
+                   num_ensembles=1)
