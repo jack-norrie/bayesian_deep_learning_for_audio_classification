@@ -795,7 +795,7 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
     return model
 
 def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
-                   save_model=True, make_preds = True):
+                   save_model=True, make_preds = True, prob_model=False):
     fold_list = list(range(1, 6))
     for fold in range(1, 6):
         # Make a list of folds that exclude the current validation fold
@@ -838,7 +838,13 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
                 reader=read_windowed_spectrogram_tfrecord)
             preds = []
             for example in data_val.batch(1):
-                preds.append(model(example[0]))
+                if not prob_model:
+                    preds.append(model(example[0]))
+                else:
+                    # Make 100 predicitons for the input
+                    example_preds = model(example[0]).sample(100)
+                    vpd = tf.reduce_mean(example_preds)
+                    preds.append(vpd)
         print(preds)
 
 
@@ -852,4 +858,5 @@ if __name__ == '__main__':
                    epochs=1,
                    fpath_id='bnn',
                    save_model=False,
-                   make_preds = True)
+                   make_preds = True,
+                   prob_model = True)
