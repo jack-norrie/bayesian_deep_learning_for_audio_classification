@@ -754,7 +754,7 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
             bias_divergence_fn = (lambda q, p, ignore: kl(q, p)/train_size)
     ),
         tfpl.OneHotCategorical(num_classes,
-                               convert_to_tensor_fn=tfd.Distribution.mean)
+                               convert_to_tensor_fn=tfd.Distribution.mode)
     ])
 
     """
@@ -842,6 +842,9 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
                     preds.append(model(example[0]).numpy())
                 else:
                     # Make 100 predicitons for the input
+                    print(model(example[0]).probs)
+                    print(model(example[0]).probs)
+                    return "stop"
                     example_preds = model(example[0]).sample(100)
                     vpd = tf.reduce_mean(example_preds).numpy()
                     preds.append(vpd)
