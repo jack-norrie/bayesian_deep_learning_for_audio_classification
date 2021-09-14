@@ -836,7 +836,9 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
             data_val = load_dataset(
                 f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords',
                 reader=read_windowed_spectrogram_tfrecord)
-            preds = model(data_val)
+            preds = []
+            for example in data_val:
+                preds.append(model(example[0]))
         print(preds)
 
 
