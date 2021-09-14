@@ -679,23 +679,33 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
                           metrics=['accuracy'],
                           reg = 0,
                           prior_scale=1,
-                          batch_size=1024):
+                          train_size=1024):
 
     # Define prior
     def prior(kernel_size, bias_size, dtype=None):
         n = kernel_size + bias_size
-        loc = tf.zeros(n)
-        scale = tf.ones(n) * prior_scale
-        return lambda t: tfd.MultivariateNormalDiag(loc=loc,
-                                                    scale_diag=scale)
+        prior_model = Sequential(
+            [
+                tfp.layers.DistributionLambda(
+                    lambda t: tfp.distributions.MultivariateNormalDiag(
+                        loc=tf.zeros(n), scale_diag=tf.ones(n) * prior_scale
+                    )
+                )
+            ]
+        )
+        return prior_model
 
-    # Define posterior
     def posterior(kernel_size, bias_size, dtype=None):
         n = kernel_size + bias_size
-        return Sequential([
-            tfpl.VariableLayer(tfpl.IndependentNormal.params_size(n)),
-            tfpl.IndependentNormal(n)
-        ])
+        posterior_model = Sequential(
+            [
+                tfp.layers.VariableLayer(
+                    tfp.layers.IndependentNormal.params_size(n),
+                    dtype=dtype
+                ),
+                tfp.layers.IndependentNormal(n),
+            ]
+        )
 
     model = Sequential([
         Input(shape=input_shape, dtype='float32'),
@@ -729,7 +739,13 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
               kernel_regularizer=regularizers.l2(reg)),
         BatchNormalization(),
         Dropout(rate=0.5),
-        Dense(50),
+        tfpl.DenseVariational(
+            tfpl.OneHotCategorical.params_size(num_classes),
+            make_posterior_fn=posterior,
+            make_prior_fn=prior,
+            kl_weight=1 / train_size,
+            kl_use_exact=False
+        ),
         tfpl.OneHotCategorical(num_classes,
                                convert_to_tensor_fn=tfd.Distribution.mode)
     ])
@@ -781,7 +797,10 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id):
                                batch_size=batch_size)
 
         # Generate model
-        model = model_generator(batch_size=batch_size)
+        print(len(list(data_train)))
+        return "lol"
+
+        model = model_generator(batch_size=len(list(data_train)))
 
         # Train model and record history
         history = model.fit(data_train,
