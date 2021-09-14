@@ -786,9 +786,9 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
                                reader=read_windowed_spectrogram_tfrecord,
                                batch_size=batch_size)
 
-        # Generate model
         train_size = 0
         for batch in data_train:
+            # Generate model
             train_size += batch[0].shape[0]
 
         for ensemble in range(1, num_ensembles + 1):
@@ -801,11 +801,11 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
 
             # Save history
             history_df = pd.DataFrame(history.history)
-            history_df.to_csv(f'models/{fpath_id}/hist_fold_{fold}.csv')
+            history_df.to_csv(f'models/{fpath_id}/hist_fold_{ensemble}_{fold}.csv')
 
             # Save model
             if save_model:
-                model.save(f'models/{fpath_id}/model_fold_{fold}.hp5')
+                model.save(f'models/{fpath_id}/model_fold_{ensemble}_{fold}.hp5')
 
             # Save predictions
             if make_preds:
@@ -831,7 +831,7 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
 if __name__ == '__main__':
     # Set GPU to use:
     import os
-    os.environ["CUDA_VISIBLE_DEVICES"] = '1'
+    os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
     """
     train_wind_mel(batch_size=1024,
