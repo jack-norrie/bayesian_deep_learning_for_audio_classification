@@ -706,6 +706,7 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
                 tfp.layers.IndependentNormal(n),
             ]
         )
+        return posterior_model
 
     model = Sequential([
         Input(shape=input_shape, dtype='float32'),
@@ -767,10 +768,6 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
             kl_use_exact=False
         )
     """
-
-
-    tfpl.OneHotCategorical(num_classes,
-                           convert_to_tensor_fn=tfd.Distribution.mode)
 
     model.summary()
 
