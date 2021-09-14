@@ -810,11 +810,11 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
             # Save predictions
             if make_preds:
                 # unshuffle and unbatch validation set
-                data_val = load_dataset(
+                data_val_fresh = load_dataset(
                     f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords',
                     reader=read_windowed_spectrogram_tfrecord)
                 preds = []
-                for example in data_val.batch(1):
+                for example in data_val_fresh.batch(1):
                     if not prob_model:
                         preds.append(model(example[0]).numpy()[0])
                     else:
