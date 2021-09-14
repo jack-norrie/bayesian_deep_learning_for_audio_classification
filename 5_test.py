@@ -100,6 +100,8 @@ def test_wind_mel_model(preds_paths, data_val):
 
     accuracy = num_correct / num_examples
 
+    print(f"{num_correct} / {num_examples} = {accuracy:.4f}")
+
     return accuracy
 
 def cv(preds_path_stem, num_ensemble=1):
@@ -116,7 +118,6 @@ def cv(preds_path_stem, num_ensemble=1):
         pred_paths=[f'{preds_path_stem}preds_fold_{i}_{fold}.npy'
                     for i in range(1, num_ensemble+1)]
         fold_acc = test_wind_mel_model(pred_paths, data_val)
-        print(f"Fold {fold}: {fold_acc:.4f}")
         fold_accs.append(fold_acc)
     cv_acc = np.mean(fold_accs)
     print(f"dThe cross validation accuracy is {cv_acc:.4f}")
