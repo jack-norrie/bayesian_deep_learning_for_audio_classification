@@ -675,16 +675,17 @@ def gen_wind_mel_cnn_insp(input_shape=(128, 128, 2), num_classes=50,
 
 def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
                           loss=nll,
-                          optimizer=RMSprop(),
+                          optimizer=Adam(),
                           metrics=['accuracy'],
-                          reg = 1e-4,
+                          reg = 0,
+                          prior_scale=1,
                           batch_size=1024):
 
     # Define prior
     def prior(kernel_size, bias_size, dtype=None):
         n = kernel_size + bias_size
         loc = tf.zeros(n)
-        scale = tf.ones(n) #* tf.math.sqrt(1/(2 * reg))
+        scale = tf.ones(n) * prior_scale
         return lambda t: tfd.MultivariateNormalDiag(loc=loc,
                                                     scale_diag=scale)
 
@@ -732,7 +733,7 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
             tfpl.OneHotCategorical.params_size(num_classes),
             make_posterior_fn=posterior,
             make_prior_fn=prior,
-            kl_weight=1 / batch_size,
+            kl_weight=1/batch_size,
             kl_use_exact=False
         ),
         tfpl.OneHotCategorical(num_classes,
