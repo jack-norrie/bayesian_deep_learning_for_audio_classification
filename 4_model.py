@@ -817,9 +817,9 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
         model = model_generator(train_size=train_size)
 
         # Train model and record history
-        history = model.fit(data_train.take(5),
-                  validation_data=data_val,
-                  epochs=epochs)
+        history = model.fit(data_train,
+                            validation_data=data_val,
+                            epochs=epochs)
 
         # Save history
         history_df = pd.DataFrame(history.history)
