@@ -674,7 +674,7 @@ def gen_wind_mel_cnn_insp(input_shape=(128, 128, 2), num_classes=50,
     return model
 
 def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
-                          loss='categorical_crossentropy',
+                          loss=nll,
                           optimizer=RMSprop(),
                           metrics=['accuracy'],
                           reg = 1e-4,
@@ -725,7 +725,7 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
         BatchNormalization(),
         Dropout(rate=0.5),
         tfpl.DenseVariational(
-            tfpl.OneHotCategorical.params_size(num_classes),
+            128,
             activation='elu',
             make_posterior_fn=posterior,
             make_prior_fn=prior,
