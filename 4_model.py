@@ -799,7 +799,7 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id):
         # Generate model
         train_size = 0
         for batch in data_train:
-            train_size += batch.shape[0]
+            train_size += batch[0].shape[0]
         print(train_size)
         return "lol"
 
