@@ -113,7 +113,7 @@ def cv(preds_path_stem, num_ensemble=1):
     for fold in range(1, 6):
         data_val = load_dataset(
             f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords')
-        pred_paths=[f'{preds_path_stem}_preds_fold_{i}_{fold}.npy'
+        pred_paths=[f'{preds_path_stem}preds_fold_{i}_{fold}.npy'
                     for i in range(1, num_ensemble+1)]
         fold_acc = test_wind_mel_model(pred_paths, data_val)
         print(f"Fold {fold}: {fold_acc:.4f}")
