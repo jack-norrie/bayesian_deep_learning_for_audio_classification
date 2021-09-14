@@ -754,7 +754,7 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
             bias_divergence_fn = (lambda q, p, ignore: kl(q, p)/train_size)
     ),
         tfpl.OneHotCategorical(num_classes,
-                               convert_to_tensor_fn= lambda dist: dist.probs)
+                               convert_to_tensor_fn= tfd.OneHotCategorical.logits)
     ])
 
     """
