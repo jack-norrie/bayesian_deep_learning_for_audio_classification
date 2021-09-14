@@ -675,7 +675,7 @@ def gen_wind_mel_cnn_insp(input_shape=(128, 128, 2), num_classes=50,
 
 def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
                           loss=nll,
-                          optimizer=RMSprop(learning_rate=0.05),
+                          optimizer=RMSprop(learning_rate=0.025),
                           metrics=['accuracy'],
                           reg = 0,
                           prior_scale=1,
@@ -815,4 +815,4 @@ if __name__ == '__main__':
     # Set GPU to use:
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = "7"
-    train_wind_mel(1024, gen_wind_mel_bnn_insp, 200, 'bnn')
+    train_wind_mel(1024, gen_wind_mel_bnn_insp, 1, 'bnn')
