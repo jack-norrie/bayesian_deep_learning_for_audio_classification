@@ -680,36 +680,10 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
                           loss='categorical_crossentropy',
                           optimizer=RMSprop(learning_rate=0.025),
                           metrics=['accuracy'],
-                          reg = 1e-4,
+                          reg = 0,
                           prior_scale=1,
                           train_size=None):
 
-    # Define prior
-    def prior(kernel_size, bias_size, dtype=None):
-        n = kernel_size + bias_size
-        prior_model = Sequential(
-            [
-                tfp.layers.DistributionLambda(
-                    lambda t: tfp.distributions.MultivariateNormalDiag(
-                        loc=tf.zeros(n), scale_diag=tf.ones(n) * prior_scale
-                    )
-                )
-            ]
-        )
-        return prior_model
-
-    def posterior(kernel_size, bias_size, dtype=None):
-        n = kernel_size + bias_size
-        posterior_model = Sequential(
-            [
-                tfp.layers.VariableLayer(
-                    tfp.layers.IndependentNormal.params_size(n),
-                    dtype=dtype
-                ),
-                tfp.layers.IndependentNormal(n),
-            ]
-        )
-        return posterior_model
 
     model = Sequential([
         Input(shape=input_shape, dtype='float32'),
@@ -857,9 +831,9 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
 if __name__ == '__main__':
     # Set GPU to use:
     import os
-    os.environ["CUDA_VISIBLE_DEVICES"] = '1'
+    os.environ["CUDA_VISIBLE_DEVICES"] = '2'
 
-
+    """
     train_wind_mel(batch_size=1024,
                    model_generator=gen_wind_mel_cnn_insp,
                    epochs=100,
@@ -868,9 +842,8 @@ if __name__ == '__main__':
                    make_preds=True,
                    prob_model=False,
                    num_ensembles=5)
-
-
     """
+
     train_wind_mel(batch_size=1024,
                    model_generator=gen_wind_mel_bnn_insp,
                    epochs=100,
@@ -879,4 +852,3 @@ if __name__ == '__main__':
                    make_preds = True,
                    prob_model = True,
                    num_ensembles=5)
-    """
