@@ -8,6 +8,7 @@ from tensorflow.keras.optimizers import Adam, RMSprop, SGD
 import tensorflow_probability as tfp
 tfd = tfp.distributions
 tfpl = tfp.layers
+kl =  tfp.distributions.kl_divergence
 from functools import partial
 efn = tf.keras.applications.efficientnet
 
@@ -740,13 +741,17 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
               kernel_regularizer=regularizers.l2(reg)),
         BatchNormalization(),
         Dropout(rate=0.5),
-        tfpl.DenseVariational(
+        tfp.layers.DenseReparameterization(
             tfpl.OneHotCategorical.params_size(num_classes),
-            make_posterior_fn=posterior,
-            make_prior_fn=prior,
-            kl_weight=1 / train_size,
-            kl_use_exact=False
-        ),
+            kernel_posterior_fn=tfpl.util.default_mean_field_normal_fn(),
+            kernel_posterior_tensor_fn=(lambda d: d.sample()),
+            kernel_prior_fn=tfp.layers.default_multivariate_normal_fn,
+            kernel_divergence_fn=(lambda q, p, ignore: kl(q, p)/train_size) ,
+            bias_posterior_fn=tfpl.util.default_mean_field_normal_fn(),
+            bias_posterior_tensor_fn = (lambda d: d.sample()),
+            bias_prior_fn = tfp.layers.default_multivariate_normal_fn,
+            bias_divergence_fn = (lambda q, p, ignore: kl(q, p)/train_size)
+    ),
         tfpl.OneHotCategorical(num_classes,
                                convert_to_tensor_fn=tfd.Distribution.mode)
     ])
@@ -767,6 +772,17 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
             kl_weight=1/batch_size,
             kl_use_exact=False
         )
+        
+    tfp.layers.DenseReparameterization(
+        units, activation=None, activity_regularizer=None, trainable=True,
+        kernel_posterior_fn=tfp_layers_util.default_mean_field_normal_fn(),
+        kernel_posterior_tensor_fn=(lambda d: d.sample()),
+        kernel_prior_fn=tfp.layers.default_multivariate_normal_fn,
+        kernel_divergence_fn=(lambda q, p, ignore: kl_lib.kl_divergence(q, p)), bias_pos
+        terior_fn=tfp_layers_util.default_mean_field_normal_fn(is_singular=True),
+        bias_posterior_tensor_fn=(lambda d: d.sample()), bias_prior_fn=None,
+        bias_divergence_fn=(lambda q, p, ignore: kl_lib.kl_divergence(q, p)), **kwargs
+    )
     """
 
     model.summary()
