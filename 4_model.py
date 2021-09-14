@@ -848,10 +848,8 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
                         example_preds = np.stack(example_preds)
                         vpd = np.mean(example_preds, axis=0)
                         preds.append(vpd[0])
-
             preds = np.stack(preds)
             np.save(f'models/{fpath_id}/preds_fold_{ensemble}_{fold}.npy', preds)
-            print(preds)
 
 
 
