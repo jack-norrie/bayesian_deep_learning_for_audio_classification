@@ -844,7 +844,7 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
                     example_preds = [model(example[0]) for _ in range(100)]
                     example_preds = np.stack(example_preds)
                     print(example_preds)
-                    vpd = np.mean(example_preds, axis=-1)
+                    vpd = np.mean(example_preds, axis=0)
                     print(vpd)
                     preds.append(vpd)
                     return "stop"
