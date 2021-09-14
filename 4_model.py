@@ -1,4 +1,5 @@
 import pandas as pd
+import pickle
 import tensorflow as tf
 from tensorflow.keras.layers import Input, Dense, Dropout, BatchNormalization,\
     MaxPool2D, AvgPool2D, Flatten, Permute, Conv1D, Conv2D
@@ -793,7 +794,8 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
 
     return model
 
-def train_wind_mel(batch_size, model_generator, epochs, fpath_id):
+def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
+                   save_via_pickle=False):
     fold_list = list(range(1, 6))
     for fold in range(1, 6):
         # Make a list of folds that exclude the current validation fold
@@ -825,10 +827,20 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id):
         history_df.to_csv(f'models/{fpath_id}/hist_fold_{fold}.csv')
 
         # Save model
-        model.save(f'models/{fpath_id}/model_fold_{fold}.hp5')
+        if not save_via_pickle:
+            model.save(f'models/{fpath_id}/model_fold_{fold}.hp5')
+        else:
+            pickling_on = open("f'models/{fpath_id}/model_fold_{fold}.pickle'",
+                               "wb")
+            pickle.dump(model, pickling_on)
+            pickling_on.close()
 
 if __name__ == '__main__':
     # Set GPU to use:
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = "7"
-    train_wind_mel(1024, gen_wind_mel_bnn_insp, 1, 'bnn')
+    train_wind_mel(batch_size=1024,
+                   model_generator=gen_wind_mel_bnn_insp,
+                   epochs=1,
+                   fpath_id='bnn',
+                   save_via_pickle=True)
