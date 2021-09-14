@@ -150,10 +150,10 @@ def gen_efn_model(input_shape=(128, 431, 3), output_shape=50):
 def nll(y_true, y_pred):
     return -y_pred.log_prob(y_true)
 
-def prior(kernel_size, bias_size, dtype=None, scale=1):
+def prior(kernel_size, bias_size, dtype=None):
     n = kernel_size + bias_size
     return lambda t : tfd.MultivariateNormalDiag(loc=tf.zeros(n),
-                                                 scale_diag=tf.ones(n) * scale)
+                                                 scale_diag=tf.ones(n))
 def posterior(kernel_size, bias_size, dtype=None):
     n = kernel_size + bias_size
     return Sequential([
@@ -680,9 +680,21 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
                           reg = 1e-4,
                           batch_size=1024):
 
-    # Modify prior for appropraite regularisation
-    prior = lambda kernel_size, bias_size, dtype :\
-        prior(kernel_size, bias_size, None, scale=1/(2*reg))
+    # Define prior
+    def prior(kernel_size, bias_size, dtype=None):
+        n = kernel_size + bias_size
+        loc = tf.zeros(n)
+        scale = tf.ones(n) * 1/(2 * reg)
+        return lambda t: tfd.MultivariateNormalDiag(loc=loc,
+                                                    scale_diag=scale)
+
+    # Define posterior
+    def posterior(kernel_size, bias_size, dtype=None):
+        n = kernel_size + bias_size
+        return Sequential([
+            tfpl.VariableLayer(tfpl.IndependentNormal.params_size(n)),
+            tfpl.IndependentNormal(n)
+        ])
 
     model = Sequential([
         Input(shape=input_shape, dtype='float32'),
