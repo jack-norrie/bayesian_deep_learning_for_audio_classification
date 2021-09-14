@@ -840,7 +840,7 @@ if __name__ == '__main__':
                    save_model=False,
                    make_preds=True,
                    prob_model=False,
-                   num_ensembles=5)
+                   num_ensembles=100)
 
     """
     train_wind_mel(batch_size=1024,
