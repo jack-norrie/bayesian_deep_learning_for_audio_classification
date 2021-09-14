@@ -849,4 +849,5 @@ if __name__ == '__main__':
                    model_generator=gen_wind_mel_bnn_insp,
                    epochs=1,
                    fpath_id='bnn',
-                   save_via_pickle=True)
+                   save_model=False,
+                   make_preds = True)
