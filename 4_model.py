@@ -836,7 +836,7 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
                 f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords',
                 reader=read_windowed_spectrogram_tfrecord)
             preds = []
-            for example in data_val.batch(1):
+            for example in data_val:
                 if not prob_model:
                     preds.append(model(example[0]).numpy())
                 else:
@@ -861,7 +861,7 @@ if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "7"
     train_wind_mel(batch_size=1024,
                    model_generator=gen_wind_mel_bnn_insp,
-                   epochs=1,
+                   epochs=10,
                    fpath_id='bnn',
                    save_model=False,
                    make_preds = True,
