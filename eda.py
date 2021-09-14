@@ -238,6 +238,10 @@ def activation_plot(range=[-1.5, 1.5], figsize=[8, 4]):
 
     return fig
 
+def plot_learning_curves(history_paths):
+    histories = pd.concat([pd.read_csv(path) for path in history_paths])
+    pd.plot()
+
 
 if __name__ == '__main__':
     # Load  in relevant data.

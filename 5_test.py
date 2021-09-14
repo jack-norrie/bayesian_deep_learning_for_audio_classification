@@ -72,7 +72,7 @@ def test_wind_mel_model(preds_paths, data_val):
     num_correct = 0
     current_id = None
     current_label = None
-    lab_pred = []
+    c_matrix = np.zeros((50, 50))
     for i in range(len(ids)):
         label = labels[i]
         id = ids[i]
@@ -84,6 +84,10 @@ def test_wind_mel_model(preds_paths, data_val):
             if current_id:
                 current_prediction_probs /= num_ids
                 prediction = np.argmax(current_prediction_probs)
+
+                # update lab_pred counts
+                c_matrix[int(label), int(prediction)] += 1
+
                 # Increment correct prediction counter if prediction correct
                 if prediction == current_label:
                     num_correct += 1
@@ -102,7 +106,7 @@ def test_wind_mel_model(preds_paths, data_val):
 
     print(f"{num_correct} / {num_examples} = {accuracy:.4f}")
 
-    return accuracy
+    return accuracy, c_matrix
 
 def cv(preds_path_stem, num_ensemble=1):
     """ Performs cross validation on a segmented log-mel spectrogram trained model.
@@ -112,19 +116,24 @@ def cv(preds_path_stem, num_ensemble=1):
 
     """
     fold_accs = []
+    fold_c_matricies = []
     for fold in range(1, 6):
         data_val = load_dataset(
             f'Data/esc50_mel_wind_tfr/raw/fold_{fold}.tfrecords')
         pred_paths=[f'{preds_path_stem}preds_fold_{i}_{fold}.npy'
                     for i in range(1, num_ensemble+1)]
-        fold_acc = test_wind_mel_model(pred_paths, data_val)
+        fold_acc, fold_c_matrix = test_wind_mel_model(pred_paths, data_val)
         fold_accs.append(fold_acc)
+        fold_c_matricies.append(fold_c_matrix)
     cv_acc = np.mean(fold_accs)
+    c_matrix = np.sum(fold_c_matricies, axis=0) / np.sum(fold_c_matricies)
+    np.save(f'{preds_path_stem}cmatrix_{num_ensemble}', c_matrix)
     print(f"The cross validation accuracy is {cv_acc:.4f}")
 
 if __name__ == '__main__':
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     cv('models/bnn/')
+    cv('models/bnn/', num_ensemble=5)
 
 

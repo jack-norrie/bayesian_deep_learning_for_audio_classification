@@ -856,7 +856,7 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
 if __name__ == '__main__':
     # Set GPU to use:
     import os
-    os.environ["CUDA_VISIBLE_DEVICES"] = "6"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     train_wind_mel(batch_size=1024,
                    model_generator=gen_wind_mel_bnn_insp,
                    epochs=100,
