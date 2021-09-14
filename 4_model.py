@@ -1,5 +1,5 @@
 import pandas as pd
-import pickle
+import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers import Input, Dense, Dropout, BatchNormalization,\
     MaxPool2D, AvgPool2D, Flatten, Permute, Conv1D, Conv2D
@@ -839,12 +839,15 @@ def train_wind_mel(batch_size, model_generator, epochs, fpath_id,
             preds = []
             for example in data_val.batch(1):
                 if not prob_model:
-                    preds.append(model(example[0]))
+                    preds.append(model(example[0]).numpy())
                 else:
                     # Make 100 predicitons for the input
                     example_preds = model(example[0]).sample(100)
-                    vpd = tf.reduce_mean(example_preds)
+                    vpd = tf.reduce_mean(example_preds).numpy()
                     preds.append(vpd)
+
+        preds = np.stack(preds)
+        np.save(f'models/{fpath_id}/preds_fold_{fold}.npy', preds)
         print(preds)
 
 
