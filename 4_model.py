@@ -835,7 +835,7 @@ if __name__ == '__main__':
 
     train_wind_mel(batch_size=1024,
                    model_generator=gen_wind_mel_cnn_insp,
-                   epochs=1,
+                   epochs=100,
                    fpath_id='cnn_ens',
                    save_model=False,
                    make_preds=True,
