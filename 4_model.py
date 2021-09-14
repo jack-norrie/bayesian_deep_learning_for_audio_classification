@@ -630,7 +630,8 @@ def gen_wind_mel_cnn_insp(input_shape=(128, 128, 2), num_classes=50,
                           loss='categorical_crossentropy',
                           optimizer=RMSprop(),
                           metrics=['accuracy'],
-                          reg = 1e-4):
+                          reg = 1e-4,
+                          train_size=None):
 
     model = Sequential([
         Input(shape=input_shape, dtype='float32'),
@@ -681,7 +682,7 @@ def gen_wind_mel_bnn_insp(input_shape=(128, 128, 2), num_classes=50,
                           metrics=['accuracy'],
                           reg = 1e-4,
                           prior_scale=1,
-                          train_size=1024):
+                          train_size=None):
 
     # Define prior
     def prior(kernel_size, bias_size, dtype=None):
