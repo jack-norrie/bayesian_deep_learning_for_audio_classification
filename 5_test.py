@@ -127,7 +127,7 @@ def cv(preds_path_stem, num_ensemble=1):
         fold_c_matricies.append(fold_c_matrix)
     cv_acc = np.mean(fold_accs)
     c_matrix = np.sum(fold_c_matricies, axis=0) / np.sum(fold_c_matricies)
-    np.save(f'{preds_path_stem}cmatrix_{num_ensemble}', c_matrix)
+    np.save(f'{preds_path_stem}cmatrix_{num_ensemble}.npy', c_matrix)
     print(f"The cross validation accuracy is {cv_acc:.4f}")
 
 if __name__ == '__main__':

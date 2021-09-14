@@ -263,6 +263,23 @@ def plot_learning_curves(history_path_stem, num_folds=5, num_ensembles=1):
                          history['val_accuracy'], ax=axes[i, 0],
                          color='purple', alpha=alpha)
 
+    return fig
+
+def plot_c_matrix(c_matrix_path, label_dixt):
+    c_matrix = np.load(c_matrix_path)
+
+    fig, ax = plt.subplots(1, 1)
+    ax.imshow(c_matrix)
+    labels = [label_dict[f'{i}'] for i in range(50)]
+    ax.imshow(c_matrix)
+    ax.set_xticks(labels)
+    ax.xaxis.tick_top()
+    ax.set_yticks(labels)
+    ax.set_xlabel("Predicted", rotation='vertical')
+    ax.xaxis.set_label_position('top')
+    ax.set_ylabel("Actual")
+
+
 
 
 
