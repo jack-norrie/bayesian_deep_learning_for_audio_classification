@@ -120,7 +120,7 @@ def cv(preds_path_stem, num_ensemble=1):
         fold_acc = test_wind_mel_model(pred_paths, data_val)
         fold_accs.append(fold_acc)
     cv_acc = np.mean(fold_accs)
-    print(f"dThe cross validation accuracy is {cv_acc:.4f}")
+    print(f"The cross validation accuracy is {cv_acc:.4f}")
 
 if __name__ == '__main__':
     import os

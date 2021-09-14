@@ -859,7 +859,7 @@ if __name__ == '__main__':
     os.environ["CUDA_VISIBLE_DEVICES"] = "7"
     train_wind_mel(batch_size=1024,
                    model_generator=gen_wind_mel_bnn_insp,
-                   epochs=10,
+                   epochs=100,
                    fpath_id='bnn',
                    save_model=False,
                    make_preds = True,
