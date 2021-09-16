@@ -126,14 +126,18 @@ def cv(preds_path_stem, num_ensemble=1):
         fold_accs.append(fold_acc)
         fold_c_matricies.append(fold_c_matrix)
     cv_acc = np.mean(fold_accs)
+    cv_acc_std = np.std(fold_accs)
     c_matrix = np.sum(fold_c_matricies, axis=0) / np.sum(fold_c_matricies)
     np.save(f'{preds_path_stem}cmatrix_{num_ensemble}.npy', c_matrix)
-    print(f"The cross validation accuracy is {cv_acc:.4f}")
+    print(f"The cross validation accuracy is {cv_acc:.4f} "
+          f"+/- 1.96 * {cv_acc_std:.4f}")
 
 if __name__ == '__main__':
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = "2"
-    cv('models/bnn/')
-    cv('models/bnn/', num_ensemble=5)
+    cv('models/cnn_ens/', num_ensemble=1)
+    cv('models/cnn_ens/', num_ensemble=5)
+    cv('models/bnn_ens/', num_ensemble=1)
+    cv('models/bnn_ens/', num_ensemble=5)
 
 

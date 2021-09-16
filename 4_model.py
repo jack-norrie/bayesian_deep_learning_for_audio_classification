@@ -853,8 +853,8 @@ if __name__ == '__main__':
                    epochs=100,
                    fpath_id='bnn_ens',
                    save_model=False,
-                   make_preds = True,
-                   prob_model = True,
+                   make_predsd=True,
+                   prob_model=True,
                    num_ensembles=5)
     """
 

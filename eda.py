@@ -280,6 +280,15 @@ def plot_c_matrix(c_matrix_path, label_dixt):
     ax.set_ylabel("Actual")
 
 
+def plot_mel_filter(figsize=[8, 3]):
+    mels = librosa.filters.mel(sr=44100, n_fft=1024, n_mels=8)
+    fig, ax = plt.subplots(1, 1, figsize=figsize)
+    ax.set_title("Mel Filter Bank")
+    ax.set_xlabel("Frequency Index")
+    ax.set_ylabel("Weight")
+    for mel in mels:
+        ax.plot(mel)
+    return fig
 
 
 
@@ -322,6 +331,8 @@ if __name__ == '__main__':
         savefig('Figures/single_waveform.PNG')
 
     activation_plot(figsize=[8, 3]).savefig('Figures/activation.PNG')
+
+    plot_mel_filter(figsize=[12, 4.5]).savefig('Figures/mel.PNG')
 
 
 
