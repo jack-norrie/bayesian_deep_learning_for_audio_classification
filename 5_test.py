@@ -92,7 +92,7 @@ def test_wind_mel_model(preds_paths, data_val):
                 if prediction == current_label:
                     num_correct += 1
 
-            # reset and incriment variables
+            # reset and increment variables
             num_examples += 1
             current_id = id
             current_label = label
@@ -148,9 +148,7 @@ if __name__ == '__main__':
 
     print("\nBNN low learning rate")
     cv('models/bnn_low/', num_ensemble=1)
-    """
     print("\nBNN low learning rate Ensemble")
     cv('models/bnn_low_ens/', num_ensemble=5)
-    """
 
 
