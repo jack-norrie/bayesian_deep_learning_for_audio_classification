@@ -853,9 +853,9 @@ if __name__ == '__main__':
     train_wind_mel(batch_size=1024,
                    model_generator=gen_wind_mel_bnn_insp,
                    epochs=100,
-                   fpath_id='bnn_low_ens',
+                   fpath_id='bnn_low',
                    save_model=False,
                    make_preds=True,
                    prob_model=True,
-                   num_ensembles=5)
+                   num_ensembles=1)
 
