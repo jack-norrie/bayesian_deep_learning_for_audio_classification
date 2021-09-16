@@ -241,13 +241,14 @@ def activation_plot(range=[-1.5, 1.5], figsize=[8, 4]):
 def plot_learning_curves(history_path_stem, num_folds=5, num_ensembles=1):
     fig, axes = plt.subplots(nrows=num_ensembles, ncols=1,  squeeze=False)
     for i in range(1, num_folds+1):
-        history_paths = [f'{history_path_stem}history_fold_{i}_{j}' \
+        history_paths = [f'{history_path_stem}hist_fold_{i}_{j}.csv' \
                          for j in range(1, 6)]
         histories = [pd.read_csv(path) for path in history_paths]
+
         if len(histories) > 1:
-            alphha = 0.5
+            alpha=0.5
         else:
-            alpha=1
+            alpha = 1
 
         for history in histories:
             history.plot([i for i in range(1, len(history) + 1)],
@@ -333,6 +334,10 @@ if __name__ == '__main__':
     activation_plot(figsize=[8, 3]).savefig('Figures/activation.PNG')
 
     plot_mel_filter(figsize=[12, 4.5]).savefig('Figures/mel.PNG')
+
+    plot_learning_curves(history_path_stem='models/cnn_ens/',
+                         num_folds=5,
+                         num_ensembles=5)
 
 
 

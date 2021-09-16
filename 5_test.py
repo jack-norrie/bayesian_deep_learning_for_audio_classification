@@ -135,9 +135,9 @@ def cv(preds_path_stem, num_ensemble=1):
 if __name__ == '__main__':
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = "2"
-    cv('models/cnn_ens/', num_ensemble=1)
+    cv('models/cnn/', num_ensemble=1)
     cv('models/cnn_ens/', num_ensemble=5)
-    cv('models/bnn_ens/', num_ensemble=1)
+    cv('models/bnn/', num_ensemble=1)
     cv('models/bnn_ens/', num_ensemble=5)
 
 
