@@ -855,7 +855,7 @@ if __name__ == '__main__':
                    epochs=100,
                    fpath_id='bnn',
                    save_model=False,
-                   make_predsd=True,
+                   make_preds=True,
                    prob_model=True,
                    num_ensembles=1)
 
