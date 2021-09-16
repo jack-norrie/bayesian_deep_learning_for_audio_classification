@@ -135,9 +135,22 @@ def cv(preds_path_stem, num_ensemble=1):
 if __name__ == '__main__':
     import os
     os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+
+    print("\nCNN")
     cv('models/cnn/', num_ensemble=1)
+    print("\nCNN Ensemble")
     cv('models/cnn_ens/', num_ensemble=5)
+
+    print("\nBNN")
     cv('models/bnn/', num_ensemble=1)
+    print("\nBNN Ensemble")
     cv('models/bnn_ens/', num_ensemble=5)
+
+    print("\nBNN low learning rate")
+    cv('models/bnn_low/', num_ensemble=1)
+    """
+    print("\nBNN low learning rate Ensemble")
+    cv('models/bnn_low_ens/', num_ensemble=5)
+    """
 
 

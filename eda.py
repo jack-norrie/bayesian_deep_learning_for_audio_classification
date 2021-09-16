@@ -8,7 +8,7 @@ from cycler import cycler
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import tensorflow as tf
-from tensorflow.keras.activations import elu, relu
+from tensorflow.keras.activations import linear, elu, relu, softplus
 plt.style.use('ggplot')
 
 def extract_readable_labs(meta, lab_col_name, readable_lab_col_name):
@@ -223,10 +223,10 @@ def plot_hpss(x, sample_rate=44100, figsize=(12, 4), frac=0.15, aspect=20):
                                  frac=frac, aspect=aspect)
 
 def activation_plot(range=[-1.5, 1.5], figsize=[8, 4]):
-    fig, axes = plt.subplots(nrows=1, ncols=2,
+    fig, axes = plt.subplots(nrows=1, ncols=4,
                              sharey=True, figsize=figsize)
-    title = ["ReLU", "ELU"]
-    for i, func in enumerate([relu, elu]):
+    title = ["Linear", "ReLU", "ELU", 'Softplus']
+    for i, func in enumerate([linear, relu, elu, softplus]):
         a = tf.linspace(*range, 100)
         with tf.GradientTape() as t:
             t.watch(a)
@@ -331,7 +331,7 @@ if __name__ == '__main__':
                    figsize=(10, 4.25)).\
         savefig('Figures/single_waveform.PNG')
 
-    activation_plot(figsize=[8, 3]).savefig('Figures/activation.PNG')
+    activation_plot(range=[-1.25, 1.25], figsize=[8, 3]).savefig('Figures/activation.PNG')
 
     plot_mel_filter(figsize=[12, 4.5]).savefig('Figures/mel.PNG')
 
