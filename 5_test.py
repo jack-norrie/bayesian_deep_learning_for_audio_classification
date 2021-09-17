@@ -86,7 +86,7 @@ def test_wind_mel_model(preds_paths, data_val):
                 prediction = np.argmax(current_prediction_probs)
 
                 # update lab_pred counts
-                c_matrix[int(label), int(prediction)] += 1
+                c_matrix[int(current_label), int(prediction)] += 1
 
                 # Increment correct prediction counter if prediction correct
                 if prediction == current_label:

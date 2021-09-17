@@ -238,47 +238,56 @@ def activation_plot(range=[-1.5, 1.5], figsize=[8, 4]):
 
     return fig
 
-def plot_learning_curves(history_path_stem, num_folds=5, num_ensembles=1):
-    fig, axes = plt.subplots(nrows=num_ensembles, ncols=1,  squeeze=False)
+def plot_learning_curves(history_path_stem, num_folds=5, num_ensembles=1,
+                         figsize=[6, 12]):
+
+    fig, axes = plt.subplots(nrows=num_folds, ncols=1,  squeeze=False,
+                             figsize=figsize)
+
+    fig.tight_layout(pad=3, h_pad=2.5)
+
     for i in range(1, num_folds+1):
-        history_paths = [f'{history_path_stem}hist_fold_{i}_{j}.csv' \
-                         for j in range(1, 6)]
+        history_paths = [f'{history_path_stem}hist_fold_{j}_{i}.csv' \
+                         for j in range(1, num_ensembles+1)]
         histories = [pd.read_csv(path) for path in history_paths]
 
         if len(histories) > 1:
-            alpha=0.5
+            alpha=0.25
         else:
             alpha = 1
 
-        for history in histories:
-            history.plot([i for i in range(1, len(history) + 1)],
-                         history['loss'], ax=axes[i, 0],
-                         color='red', alpha=alpha)
-            history.plot([i for i in range(1, len(history) + 1)],
-                         history['val_loss'], ax=axes[i, 0],
-                         color='orange', alpha=alpha)
-            history.plot([i for i in range(1, len(history) + 1)],
-                         history['accuracy'], ax=axes[i, 0],
-                         color='blue')
-            history.plot([i for i in range(1, len(history) + 1)],
-                         history['val_accuracy'], ax=axes[i, 0],
-                         color='purple', alpha=alpha)
+        # Set current axis and a twin axis for accuracies
+        c_ax = axes[i-1, 0]
+        c_ax.set_title(f"Training Fold {i}")
+        c_ax.set_ylim(0, 5)
+        c_ax.set_yticks(np.linspace(0, 5, 5))
+        c_ax_t = c_ax.twinx()
+        c_ax_t.set_yticks(np.linspace(0, 1, 5))
+        c_ax_t.set_ylim(0, 1)
 
+        for history in histories:
+            epochs = [i for i in range(1, 101)]
+            c_ax.plot(epochs, history['loss'],
+                      color='red', alpha=alpha)
+            c_ax.plot(epochs, history['val_loss'],
+                      color='orange', alpha=alpha)
+            c_ax_t.plot(epochs, history['accuracy'],
+                        color='blue', alpha=alpha)
+            c_ax_t.plot(epochs, history['val_accuracy'],
+                        color='purple', alpha=alpha)
     return fig
 
-def plot_c_matrix(c_matrix_path, label_dixt):
-    c_matrix = np.load(c_matrix_path)
+def plot_c_matrix(c_matrix_path):
+    c_matrix = np.load(c_matrix_path) * 50
 
     fig, ax = plt.subplots(1, 1)
-    ax.imshow(c_matrix)
-    labels = [label_dict[f'{i}'] for i in range(50)]
-    ax.imshow(c_matrix)
-    ax.set_xticks(labels)
+    heat = ax.imshow(c_matrix)
     ax.xaxis.tick_top()
-    ax.set_yticks(labels)
     ax.set_xlabel("Predicted", rotation='vertical')
     ax.xaxis.set_label_position('top')
-    ax.set_ylabel("Actual")
+    ax.set_ylabel("Actual", rotation=90)
+    ax.grid(b=None)
+    plt.colorbar(heat)
 
 
 def plot_mel_filter(figsize=[8, 3]):
@@ -335,10 +344,17 @@ if __name__ == '__main__':
 
     plot_mel_filter(figsize=[12, 4.5]).savefig('Figures/mel.PNG')
 
-    plot_learning_curves(history_path_stem='models/cnn_ens/',
-                         num_folds=5,
-                         num_ensembles=5)
+    for stem in [('models/cnn/', 1),
+                 ('models/cnn_ens/', 5),
+                 ('models/bnn_low/', 1),
+                 ('models/bnn_low_ens/', 5)]:
+        plot_learning_curves(history_path_stem=stem[0],
+                             num_folds=5,
+                             num_ensembles=stem[1],
+                             figsize=(10, 16)).\
+            savefig(f'{stem[0]}learning_curve')
 
+    plot_c_matrix('models/bnn_ens/cmatrix_5.npy')
 
 
 
