@@ -78,6 +78,15 @@ def write_waveforms_to_tfr_short(waveforms, labels, filename):
     return count
 
 def read_waveform_tfrecord(example, output_shape):
+    """ Reads a waveform saved in a .TFRecord format
+
+    Args:
+        example:
+        output_shape:
+
+    Returns:
+
+    """
     tfrecord_format = {
         'waveform': tf.io.FixedLenFeature([], tf.string),
         'label': tf.io.FixedLenFeature([], tf.int64)
@@ -204,6 +213,7 @@ def mel_extractor(in_fpath='Data/esc50_tabulated',
         write_spectrograms_to_tfr_short(log_mel_spectrograms,
                                   labels,
                                   f'{out_fpath}_{fold}')
+
 def parse_single_windowed_image(image, label, id):
     # define the dictionary -- the structure -- of our single example
     data = {
@@ -311,10 +321,11 @@ def multi_mel_extractor(in_fpath='Data/esc50_tabulated',
 
 
 if __name__ == '__main__':
+    wav_extractor()
     windowed_mel_delta_extractor('Data/esc50_wav_tfr/raw/',
                                  'Data/esc50_mel_wind_tfr/raw/')
-    """
-    wav_extractor()
+
+    """ Necessary extractors  for experimental models
     wav_downsampled_extractor()
     mel_extractor()
     multi_mel_extractor()
