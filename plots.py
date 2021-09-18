@@ -283,11 +283,13 @@ def plot_c_matrix(c_matrix_path):
     fig, ax = plt.subplots(1, 1)
     heat = ax.imshow(c_matrix)
     ax.xaxis.tick_top()
-    ax.set_xlabel("Predicted", rotation='vertical')
+    ax.set_xlabel("Predicted")
     ax.xaxis.set_label_position('top')
-    ax.set_ylabel("Actual", rotation=90)
+    ax.set_ylabel("Actual")
     ax.grid(b=None)
     plt.colorbar(heat)
+
+    return fig
 
 
 def plot_mel_filter(figsize=[8, 3]):
@@ -354,7 +356,11 @@ if __name__ == '__main__':
                              figsize=(10, 16)).\
             savefig(f'{stem[0]}learning_curve')
 
-    plot_c_matrix('models/bnn_ens/cmatrix_5.npy')
+    plot_c_matrix('models/cnn/cmatrix_1.npy').savefig('models/cm_cnn.png')
+    plot_c_matrix('models/cnn_ens/cmatrix_5.npy').savefig('models/cm_cnn5.png')
+    plot_c_matrix('models/bnn_low/cmatrix_1.npy').savefig('models/cm_bnn.png')
+    plot_c_matrix('models/bnn_low_ens/cmatrix_5.npy').savefig('models/cm_bnn5.png')
+
 
 
 
