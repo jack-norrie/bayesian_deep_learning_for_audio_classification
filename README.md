@@ -9,10 +9,15 @@ Before the findings of this report, which is contained in this repository as rep
 5. Make a new directory called models/cnn, models/bnn, models/cnn_ens, models/bnn_ens
 
 With ones working environment correctly setup it is simply a case of running through the following scripts sequentially:
+
 1_data_extractor.py
+
 2_feature_extractor.py
+
 3_data_augmentation.py
+
 4_model.py
+
 5_test.py
 
 Fianlly, the plots.py script is responsible for producing all the visualisations displayed within the report.
