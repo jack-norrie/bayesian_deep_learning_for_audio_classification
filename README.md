@@ -8,7 +8,7 @@ Before the findings of this report, which is contained in this repository as rep
 4. Make a new directory called Data/esc50_mel_wind_tfr/raw & Data/esc50_mel_wind_tfr
 5. Make a new directory called models/cnn, models/bnn, models/cnn_ens, models/bnn_ens
 
-With ones worjing environment correctly setup it is simply a case of running through the following scripts sequentially:
+With ones working environment correctly setup it is simply a case of running through the following scripts sequentially:
 1_data_extractor.py
 2_feature_extractor.py
 3_data_augmentation.py
